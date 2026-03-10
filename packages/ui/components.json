@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "base-lyra",
+  "style": "radix-mira",
   "rsc": false,
   "tsx": true,
   "tailwind": {
@@ -10,15 +10,17 @@
     "cssVariables": true,
     "prefix": ""
   },
-  "iconLibrary": "lucide",
+  "iconLibrary": "tabler",
+  "menuColor": "default",
+  "menuAccent": "subtle",
   "aliases": {
     "components": "@portfolio/ui/components",
     "utils": "@portfolio/ui/lib/utils",
-    "hooks": "@portfolio/ui/hooks",
+    "ui": "@portfolio/ui/components",
     "lib": "@portfolio/ui/lib",
-    "ui": "@portfolio/ui/components"
+    "hooks": "@portfolio/ui/hooks"
   },
-  "menuColor": "default",
-  "menuAccent": "subtle",
-  "registries": {}
+  "registries": {
+    "@spell": "https://spell.sh/r/{name}.json"
+  }
 }

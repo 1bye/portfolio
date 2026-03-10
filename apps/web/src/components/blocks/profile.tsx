@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 export function ProfileBlock() {
 	return (
 		<div className="w-full border-border border-x">
-			<div>
+			<div className="flex h-fit w-fit border-border border-r">
 				<ProfileAvatar />
 			</div>
 		</div>
@@ -17,8 +17,8 @@ export function ProfileAvatar() {
 
 	const size = 120;
 
-	const depth = 14;
-	const cols = 8;
+	const depth = 8;
+	const cols = 7.7;
 	const rows = 8;
 
 	const center = size / 2;
@@ -48,9 +48,6 @@ export function ProfileAvatar() {
 
 		ctx.clearRect(0, 0, size, size);
 
-		ctx.strokeStyle = "#1c1c1c";
-		ctx.lineWidth = 1;
-
 		const squares: { x: number; y: number; s: number }[] = [];
 
 		// create perspective squares
@@ -66,8 +63,21 @@ export function ProfileAvatar() {
 			const y = center - s / 2 + offsetY;
 
 			squares.push({ x, y, s });
+		}
 
-			ctx.strokeRect(x, y, s, s);
+		// draw avatar at tunnel end FIRST (so it appears behind)
+		const end = squares[squares.length - 1];
+		if (avatar.current?.complete) {
+			ctx.drawImage(avatar.current, end.x, end.y, end.s, end.s);
+		}
+
+		ctx.strokeStyle = "#e5e5e5";
+		ctx.lineWidth = 1;
+
+		// draw perspective squares (skip first/outermost square)
+		for (let i = 1; i < squares.length; i++) {
+			const sq = squares[i];
+			ctx.strokeRect(sq.x, sq.y, sq.s, sq.s);
 		}
 
 		// connect corners
@@ -97,45 +107,70 @@ export function ProfileAvatar() {
 			}
 		}
 
-		const outer = squares[0];
-
-		// vertical grid
+		// vertical grid - bend through perspective squares
 		for (let i = 0; i <= cols; i++) {
 			const t = i / cols;
-			const x = outer.x + outer.s * t;
 
+			// top edge
 			ctx.beginPath();
-			ctx.moveTo(x, outer.y);
-			ctx.lineTo(vx, vy);
+			for (let j = 0; j < squares.length; j++) {
+				const sq = squares[j];
+				const x = sq.x + sq.s * t;
+				const y = sq.y;
+				if (j === 0) {
+					ctx.moveTo(x, y);
+				} else {
+					ctx.lineTo(x, y);
+				}
+			}
 			ctx.stroke();
 
+			// bottom edge
 			ctx.beginPath();
-			ctx.moveTo(x, outer.y + outer.s);
-			ctx.lineTo(vx, vy);
+			for (let j = 0; j < squares.length; j++) {
+				const sq = squares[j];
+				const x = sq.x + sq.s * t;
+				const y = sq.y + sq.s;
+				if (j === 0) {
+					ctx.moveTo(x, y);
+				} else {
+					ctx.lineTo(x, y);
+				}
+			}
 			ctx.stroke();
 		}
 
-		// horizontal grid
+		// horizontal grid - bend through perspective squares
 		for (let i = 0; i <= rows; i++) {
 			const t = i / rows;
-			const y = outer.y + outer.s * t;
 
+			// left edge
 			ctx.beginPath();
-			ctx.moveTo(outer.x, y);
-			ctx.lineTo(vx, vy);
+			for (let j = 0; j < squares.length; j++) {
+				const sq = squares[j];
+				const x = sq.x;
+				const y = sq.y + sq.s * t;
+				if (j === 0) {
+					ctx.moveTo(x, y);
+				} else {
+					ctx.lineTo(x, y);
+				}
+			}
 			ctx.stroke();
 
+			// right edge
 			ctx.beginPath();
-			ctx.moveTo(outer.x + outer.s, y);
-			ctx.lineTo(vx, vy);
+			for (let j = 0; j < squares.length; j++) {
+				const sq = squares[j];
+				const x = sq.x + sq.s;
+				const y = sq.y + sq.s * t;
+				if (j === 0) {
+					ctx.moveTo(x, y);
+				} else {
+					ctx.lineTo(x, y);
+				}
+			}
 			ctx.stroke();
-		}
-
-		// draw avatar at tunnel end
-		const end = squares[squares.length - 1];
-
-		if (avatar.current?.complete) {
-			ctx.drawImage(avatar.current, end.x, end.y, end.s, end.s);
 		}
 	}, [vx, vy]);
 

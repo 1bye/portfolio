@@ -11,5 +11,5 @@ function HomeComponent() {
 			<SiteHeader />
 			{/*<ProfileBlock />*/}
 		</div>
-	)
+	);
 }

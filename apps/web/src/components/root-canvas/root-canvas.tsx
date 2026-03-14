@@ -1,6 +1,7 @@
 import { Image } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { EffectComposer } from "@react-three/postprocessing";
+import { Fluid } from "@whatisjery/react-fluid-distortion";
 import { useMemo } from "react";
 import { OrderedDither } from "@/lib/r3f/effects/ordered-dither";
 import { Canvas } from "@/lib/r3f/fiber";
@@ -46,6 +47,22 @@ export function Scene() {
 			{/*<axesHelper args={[2, 2, 2]} />*/}
 			<EffectComposer>
 				<OrderedDither ditherScale={3} invertDither={true} useColor={false} />
+				<Fluid
+					backgroundColor="#a7958b"
+					blend={0}
+					curl={10}
+					densityDissipation={0.98}
+					distortion={1}
+					fluidColor="#cfc0a8"
+					force={2}
+					intensity={0.3}
+					pressure={0.94}
+					radius={0.03}
+					rainbow={false}
+					showBackground={true}
+					swirl={5}
+					velocityDissipation={0.99}
+				/>
 				{/*<SixBitRgbDither ditherScale={2} />*/}
 			</EffectComposer>
 		</>

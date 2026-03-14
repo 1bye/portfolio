@@ -1,4 +1,5 @@
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
+import { useMouse } from "@uidotdev/usehooks";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
@@ -29,7 +30,7 @@ export function FlameParticles({
 }: FlameParticlesProps) {
 	const particlesRef = useRef<THREE.Points>(null);
 	const mousePos = useRef(new THREE.Vector3(0, 0, 0));
-	const { viewport } = useThree();
+	const [mouse] = useMouse();
 
 	const { positions, velocities, lifetimes } = useMemo(() => {
 		const positions = new Float32Array(particleCount * 3);
@@ -50,14 +51,28 @@ export function FlameParticles({
 	}, [particleCount, velocityX, velocityY, velocityZ]);
 
 	useFrame((state) => {
-		if (!particlesRef.current) {
+		if (!(particlesRef.current && mouse.x && mouse.y)) {
 			return;
 		}
 
-		const pointer = state.pointer;
-		mousePos.current.x = (pointer.x * viewport.width) / 2;
-		mousePos.current.y = (pointer.y * viewport.height) / 2;
-		mousePos.current.z = 0;
+		// Convert screen coordinates to normalized device coordinates (-1 to 1)
+		const x = (mouse.x / window.innerWidth) * 2 - 1;
+		const y = -(mouse.y / window.innerHeight) * 2 + 1;
+
+		// Create a vector at the mouse position on the near plane
+		const vector = new THREE.Vector3(x, y, 0.5);
+		vector.unproject(state.camera);
+
+		// Calculate direction from camera to mouse position
+		const dir = vector.sub(state.camera.position).normalize();
+
+		// Calculate distance to z=0 plane
+		const distance = -state.camera.position.z / dir.z;
+
+		// Get the intersection point at z=0
+		mousePos.current
+			.copy(state.camera.position)
+			.add(dir.multiplyScalar(distance));
 
 		const posArray = particlesRef.current.geometry.attributes.position
 			.array as Float32Array;

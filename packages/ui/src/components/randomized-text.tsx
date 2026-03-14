@@ -19,7 +19,7 @@ export function RandomizedText({
 	className = "",
 	split = "words",
 	delay = 0.2,
-	inView = false,
+	inView = true,
 	once = true,
 }: RandomizedTextProps) {
 	const expoOut = (t: number): number => {

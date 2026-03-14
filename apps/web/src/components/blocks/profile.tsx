@@ -1,11 +1,21 @@
 import { useMouse } from "@uidotdev/usehooks";
 import { useEffect, useRef } from "react";
+import { ProfileWater } from "./profile-water";
 
 export function ProfileBlock() {
 	return (
-		<div className="w-full border-border border-x">
+		<div className="flex w-full flex-row border-border border-x">
 			<div className="flex h-fit w-fit border-border border-r">
 				<ProfileAvatar />
+			</div>
+
+			<div
+				className="flex w-full"
+				style={{
+					height: 120,
+				}}
+			>
+				<ProfileWater />
 			</div>
 		</div>
 	);

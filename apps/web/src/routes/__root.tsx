@@ -6,6 +6,9 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import type { PropsWithChildren } from "react";
+import { RootCanvasProvider } from "@/components/root-canvas/provider";
+import { RootCanvas } from "@/components/root-canvas/root-canvas";
 import appCss from "../index.css?url";
 
 export type RouterAppContext = {};
@@ -35,6 +38,17 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 	component: RootDocument,
 });
 
+function RootLayout({ children }: PropsWithChildren<{}>) {
+	return (
+		<RootCanvasProvider>
+			<main className="max-w-screen overflow-x-hidden px-2">
+				{children}
+				<RootCanvas />
+			</main>
+		</RootCanvasProvider>
+	);
+}
+
 function RootDocument() {
 	return (
 		<html className="light" lang="en">
@@ -42,9 +56,9 @@ function RootDocument() {
 				<HeadContent />
 			</head>
 			<body>
-				<main className="max-w-screen overflow-x-hidden px-2">
+				<RootLayout>
 					<Outlet />
-				</main>
+				</RootLayout>
 				<Toaster richColors />
 				<TanStackRouterDevtools position="bottom-left" />
 				<Scripts />

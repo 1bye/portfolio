@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ProfileBlock } from "@/components/blocks/profile";
 import SiteHeader from "@/components/site-header";
 
 export const Route = createFileRoute("/")({
@@ -8,9 +7,9 @@ export const Route = createFileRoute("/")({
 
 function HomeComponent() {
 	return (
-		<div className="mx-auto md:max-w-3xl *:[[id]]:scroll-mt-22">
+		<div className="relative z-10 mx-auto md:max-w-2xl *:[[id]]:scroll-mt-22">
 			<SiteHeader />
-			<ProfileBlock />
+			{/*<ProfileBlock />*/}
 		</div>
-	);
+	)
 }

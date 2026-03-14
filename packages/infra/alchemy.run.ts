@@ -1,5 +1,5 @@
 import alchemy from "alchemy";
-import { TanStackStart, Worker } from "alchemy/cloudflare";
+import { Vite, Worker } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 config({ path: "./.env" });
@@ -8,8 +8,9 @@ config({ path: "../../apps/server/.env" });
 
 const app = await alchemy("portfolio");
 
-export const web = await TanStackStart("web", {
+export const web = await Vite("web", {
 	cwd: "../../apps/web",
+	assets: "dist",
 	bindings: {
 		VITE_SERVER_URL: alchemy.env.VITE_SERVER_URL!,
 		DATABASE_URL: alchemy.secret.env.DATABASE_URL!,

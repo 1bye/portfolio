@@ -1,19 +1,15 @@
-import {
-	OrbitControls,
-	OrthographicCamera,
-	shaderMaterial,
-} from "@react-three/drei";
+import { shaderMaterial } from "@react-three/drei";
 import { Canvas, extend, useThree } from "@react-three/fiber";
 import { EffectComposer } from "@react-three/postprocessing";
 import { useMemo } from "react";
-import * as THREE from "three";
+import { Color } from "three";
 import { OrderedDither } from "@/lib/r3f/effects/ordered-dither";
 import { FlameParticles } from "@/lib/r3f/particles/flame";
 
 const RadialShaderMaterial = shaderMaterial(
 	{
-		uColor: new THREE.Color("red"),
-		uTransparentColor: new THREE.Color("transparent"),
+		uColor: new Color("red"),
+		uTransparentColor: new Color("transparent"),
 		uRadius: 0.5, // gradient spread
 		uRotation: 0.0, // rotation in radians
 	},
@@ -60,11 +56,11 @@ const RadialShaderMaterial = shaderMaterial(
 extend({ RadialShaderMaterial });
 
 export function RootCanvas() {
-	const eventSource = useMemo(() => document.body, [document]);
+	const eventSource = useMemo(() => document.body, []);
 
 	return (
 		<div className="fixed top-0 left-0 h-screen w-screen">
-			<Canvas eventSource={eventSource} orthographic>
+			<Canvas camera={{ position: [0, 0, 5] }} eventSource={eventSource}>
 				<Scene />
 			</Canvas>
 		</div>
@@ -72,12 +68,12 @@ export function RootCanvas() {
 }
 
 export function Scene() {
-	const { size, viewport } = useThree();
+	const { size } = useThree();
 
 	return (
 		<>
-			<OrbitControls />
-			<OrthographicCamera
+			{/*<OrbitControls />*/}
+			{/*<OrthographicCamera
 				bottom={-size.height}
 				far={1000}
 				left={0}
@@ -86,12 +82,13 @@ export function Scene() {
 				position={[0, 0, 100]}
 				right={size.width}
 				top={0}
-			/>
+			/>*/}
 
 			<ambientLight intensity={1} />
-			<group position={[0, 0, 0]} scale={[1, -1, 1]}>
+			{/*<group position={[0, 0, 0]} scale={[1, -1, 1]}>
 				<HeaderScene />
-			</group>
+			</group>*/}
+			<HeaderScene />
 
 			<FlameParticles
 				color="#00ffff"
@@ -102,7 +99,7 @@ export function Scene() {
 				velocityX={0.005}
 				velocityY={0.01}
 			/>
-			<axesHelper args={[2, 2, 2]} />
+			{/*<axesHelper args={[2, 2, 2]} />*/}
 			<EffectComposer>
 				<OrderedDither colorThreshold={512} ditherScale={2} useColor={true} />
 			</EffectComposer>
@@ -114,8 +111,8 @@ function HeaderScene() {
 	const { viewport } = useThree();
 
 	return (
-		<mesh position={[viewport.width / 2, 30 / 2, 0]} scale={[1, -1, 1]}>
-			<planeGeometry args={[750, 30]} />
+		<mesh position={[0, viewport.height / 2 - 0.3, 0]}>
+			<planeGeometry args={[6, 1]} />
 			<radialShaderMaterial uColor={"black"} uRadius={0.9} />
 		</mesh>
 	);

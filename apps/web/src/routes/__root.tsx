@@ -9,6 +9,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import type { PropsWithChildren } from "react";
 import { RootCanvasProvider } from "@/components/root-canvas/provider";
 import { RootCanvas } from "@/components/root-canvas/root-canvas";
+import { ThemeProvider } from "@/components/theme";
 import appCss from "../index.css?url";
 
 export type RouterAppContext = {};
@@ -41,10 +42,12 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 function RootLayout({ children }: PropsWithChildren<{}>) {
 	return (
 		<RootCanvasProvider>
-			<main className="max-w-screen overflow-x-hidden px-2">
-				{children}
-				<RootCanvas />
-			</main>
+			<ThemeProvider>
+				<main className="max-w-screen overflow-x-hidden px-2">
+					{children}
+					<RootCanvas />
+				</main>
+			</ThemeProvider>
 		</RootCanvasProvider>
 	);
 }

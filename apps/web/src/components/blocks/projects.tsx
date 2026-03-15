@@ -1,7 +1,5 @@
 import { RandomizedText } from "@portfolio/ui/components/randomized-text";
-import { cn } from "@portfolio/ui/lib/utils";
-import { animate, spring } from "animejs";
-import { useEffect, useRef, useState } from "react";
+import { type Project, ProjectItem } from "../common/project";
 
 export function ProjectsBlock() {
 	const projects: Project[] = [
@@ -11,7 +9,15 @@ export function ProjectsBlock() {
 				"Concero is an AI agent for real estate that chats with visitors on your site, recommends the right properties from your listings, and books viewings directly into your agents calendars all day and every day.",
 			icon: "projects/concero/icon.svg",
 			year: "2025",
+			companyIcon: "company/kapta/icon.svg",
+			companyName: "Kapta",
+			companyUrl: "https://kapta.pt",
 			media: [
+				{
+					type: "video",
+					url: "projects/concero/video.mp4",
+					gif: "projects/concero/video.gif",
+				},
 				{
 					type: "image",
 					url: "projects/concero/media-1.png",
@@ -64,219 +70,5 @@ export function ProjectsBlock() {
 				))}
 			</div>
 		</section>
-	);
-}
-
-export interface Project {
-	description: string;
-	icon: string;
-	media: ProjectMedia[];
-	title: string;
-	year: string;
-}
-
-export interface ProjectMedia {
-	type: "image" | "video";
-	url: string;
-}
-
-export function ProjectItem({ title, description, icon, media }: Project) {
-	const [isHovered, setIsHovered] = useState(false);
-
-	return (
-		<div
-			className="hit-area-l-18 hit-area-t-2 flex w-full flex-col gap-2"
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}
-		>
-			<div className="flex w-full flex-row items-center gap-1">
-				<div>
-					<img alt={title} height={20} src={icon} width={20} />
-				</div>
-
-				<div>
-					<RandomizedText>{title}</RandomizedText>
-				</div>
-			</div>
-			{/*<RandomizedText className="text-sm">{description}</RandomizedText>*/}
-
-			<ProjectMedia isHovered={isHovered} media={media} />
-		</div>
-	);
-}
-
-function ProjectMedia({
-	media,
-	isHovered,
-}: {
-	media: ProjectMedia[];
-	isHovered: boolean;
-}) {
-	const spanRef = useRef<HTMLDivElement>(null);
-
-	const animateTo = () => {
-		if (!spanRef.current) {
-			return;
-		}
-		animate(spanRef.current, {
-			opacity: 0,
-			translateX: 8,
-			ease: spring({
-				bounce: 0.3,
-				duration: 628,
-			}),
-		});
-	};
-	const animateFrom = () => {
-		if (!spanRef.current) {
-			return;
-		}
-		animate(spanRef.current, {
-			opacity: 1,
-			translateX: -8,
-			ease: spring({
-				bounce: 0.3,
-				duration: 628,
-			}),
-		});
-	};
-
-	useEffect(() => {
-		if (isHovered) {
-			animateTo();
-		} else {
-			animateFrom();
-		}
-	}, [isHovered]);
-
-	return (
-		<div className="flex max-w-86 overflow-auto sm:max-w-2xl">
-			<div className="relative flex flex-row">
-				{media.map((_, i) => (
-					<ProjectItemMedia
-						index={i}
-						isHovered={isHovered}
-						key={i}
-						media={media[i]}
-					/>
-				))}
-			</div>
-			<span
-				className="select-none whitespace-nowrap text-muted-foreground text-xs"
-				ref={spanRef}
-			>
-				{media.length} media
-			</span>
-		</div>
-	);
-}
-
-function ProjectItemMedia({
-	media,
-	isHovered,
-	index,
-}: {
-	media: ProjectMedia;
-	isHovered?: boolean;
-	index: number;
-}) {
-	const containerRef = useRef<HTMLDivElement>(null);
-	const mediaRef = useRef<HTMLDivElement>(null);
-
-	const mediaWidth = 128;
-	const mediaHeight = 80;
-
-	// hovered state
-	const animateTo = () => {
-		if (!(containerRef.current && mediaRef.current)) {
-			return;
-		}
-		// Container animation
-		animate(containerRef.current, {
-			width: mediaWidth,
-			height: mediaHeight,
-			translateX: 0,
-			marginRight: 2,
-			ease: spring({
-				bounce: 0.3,
-				duration: 628,
-			}),
-		});
-
-		// Media animation
-		animate(mediaRef.current, {
-			opacity: 1,
-		});
-	};
-
-	// initial state
-	const animateFrom = () => {
-		if (!(containerRef.current && mediaRef.current)) {
-			return;
-		}
-		// Container animation
-		animate(containerRef.current, {
-			width: 16,
-			height: 16,
-			translateX: index * -6,
-			marginRight: 0,
-			ease: spring({
-				bounce: 0.2,
-				duration: 628,
-			}),
-		});
-
-		// Media animation
-		animate(mediaRef.current, {
-			opacity: 0,
-		});
-	};
-
-	useEffect(() => {
-		if (isHovered) {
-			animateTo();
-		} else {
-			animateFrom();
-		}
-	}, [isHovered]);
-
-	return (
-		<>
-			<div
-				className={cn(
-					"group/media size-4 overflow-hidden rounded-sm border border-background bg-neutral-400 ring-2 ring-background",
-					isHovered && "ring-0"
-				)}
-				data-slot="media"
-				ref={containerRef}
-			>
-				<div ref={mediaRef}>
-					{media.type === "image" && (
-						<img
-							alt="Project media"
-							className="h-full w-full object-cover"
-							height={mediaHeight}
-							src={media.url}
-							width={mediaWidth}
-						/>
-					)}
-					{/*{media.type === "video" && (
-						<video
-							alt=""
-							className="h-full w-full object-cover"
-							height={mediaHeight}
-							src={media.url}
-							width={mediaWidth}
-						/>
-					)}*/}
-				</div>
-			</div>
-			{/*<div
-				className="h-fit w-full max-w-32 border border-border bg-muted"
-				style={{
-					aspectRatio: "4/3",
-				}}
-			/>*/}
-		</>
 	);
 }

@@ -8,10 +8,10 @@
     "dev:bare": "vite dev"
   },
   "dependencies": {
+    "@nandorojo/galeria": "^2.0.2",
     "@newkrok/three-particles": "^2.4.0",
     "@portfolio/env": "workspace:*",
     "@portfolio/ui": "workspace:*",
-    "@portfolio/photo-view": "workspace:*",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@react-three/postprocessing": "^3.0.4",

@@ -6,13 +6,17 @@ import { useMemo } from "react";
 import { OrderedDither } from "@/lib/r3f/effects/ordered-dither";
 import { Canvas } from "@/lib/r3f/fiber";
 import { FlameParticles } from "@/lib/r3f/particles/flame";
+import { useTheme } from "../theme";
 
 export function RootCanvas() {
+	const { theme } = useTheme();
 	const eventSource = useMemo(() => document.body, []);
+	const bgColor = theme === "dark" ? "#fff" : "#000";
 
 	return (
 		<div className="fixed top-0 left-0 h-screen w-screen">
 			<Canvas camera={{ position: [0, 0, 5] }} eventSource={eventSource}>
+				{/*<color args={[bgColor]} attach="background" />*/}
 				<Scene />
 			</Canvas>
 		</div>
@@ -20,6 +24,7 @@ export function RootCanvas() {
 }
 
 export function Scene() {
+	const { theme } = useTheme();
 	// const texture = useMemo(
 	// 	() => new TextureLoader().load("./portfolio-avatar-01.png"),
 	// 	[]

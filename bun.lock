@@ -43,6 +43,7 @@
       "dependencies": {
         "@newkrok/three-particles": "^2.4.0",
         "@portfolio/env": "workspace:*",
+        "@portfolio/photo-view": "workspace:*",
         "@portfolio/ui": "workspace:*",
         "@react-three/drei": "^10.7.7",
         "@react-three/fiber": "^9.5.0",

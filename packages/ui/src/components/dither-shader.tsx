@@ -25,6 +25,8 @@ interface DitherShaderProps {
 	customPalette?: string[];
 	/** Type of dithering pattern */
 	ditherMode?: DitheringMode;
+	/** Cap GIF redraw rate (frames per second) */
+	gifFps?: number;
 	/** Size of the dithering grid cells */
 	gridSize?: number;
 	/** Invert the dithered output colors */
@@ -33,6 +35,8 @@ interface DitherShaderProps {
 	objectFit?: "cover" | "contain" | "fill" | "none";
 	/** Pixelation multiplier (1 = no pixelation, higher = more pixelated) */
 	pixelRatio?: number;
+	/** Enable playback for GIF sources */
+	playGifs?: boolean;
 	/** Primary color for duotone mode */
 	primaryColor?: string;
 	/** Secondary color for duotone mode */
@@ -64,6 +68,8 @@ const BAYER_MATRIX_8x8 = [
 	[63, 31, 55, 23, 61, 29, 53, 21],
 ];
 
+const RGB_COLOR_REGEX = /rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)/i;
+
 function parseColor(color: string): [number, number, number] {
 	if (color.startsWith("#")) {
 		const hex = color.slice(1);
@@ -80,12 +86,12 @@ function parseColor(color: string): [number, number, number] {
 			Number.parseInt(hex.slice(4, 6), 16),
 		];
 	}
-	const match = color.match(/rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)/i);
+	const match = color.match(RGB_COLOR_REGEX);
 	if (match) {
 		return [
-			Number.parseInt(match[1]),
-			Number.parseInt(match[2]),
-			Number.parseInt(match[3]),
+			Number.parseInt(match[1], 10),
+			Number.parseInt(match[2], 10),
+			Number.parseInt(match[3], 10),
 		];
 	}
 	return [0, 0, 0];
@@ -97,6 +103,435 @@ function getLuminance(r: number, g: number, b: number): number {
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, value));
+}
+
+type RGB = [number, number, number];
+
+interface DitherRenderConfig {
+	backgroundColor: string;
+	brightness: number;
+	colorMode: ColorMode;
+	contrast: number;
+	customPalette: readonly RGB[];
+	ditherMode: DitheringMode;
+	gridSize: number;
+	invert: boolean;
+	pixelRatio: number;
+	primaryColor: RGB;
+	secondaryColor: RGB;
+	threshold: number;
+}
+
+const TRANSPARENT_ALPHA_THRESHOLD = 10;
+const ORIGINAL_COLOR_LEVELS = 4;
+
+function clearWithBackground(
+	ctx: CanvasRenderingContext2D,
+	displayWidth: number,
+	displayHeight: number,
+	backgroundColor: string
+) {
+	if (backgroundColor !== "transparent") {
+		ctx.fillStyle = backgroundColor;
+		ctx.fillRect(0, 0, displayWidth, displayHeight);
+		return;
+	}
+
+	ctx.clearRect(0, 0, displayWidth, displayHeight);
+}
+
+function getBayerConfiguration(gridSize: number) {
+	const matrixSize = gridSize <= 4 ? 4 : 8;
+	const bayerMatrix = matrixSize === 4 ? BAYER_MATRIX_4x4 : BAYER_MATRIX_8x8;
+	const matrixScale = matrixSize === 4 ? 16 : 64;
+
+	return { bayerMatrix, matrixScale, matrixSize };
+}
+
+function computeRawDitherThreshold({
+	bayerMatrix,
+	ditherMode,
+	gridSize,
+	matrixScale,
+	matrixX,
+	matrixY,
+	time,
+	x,
+	y,
+}: {
+	bayerMatrix: number[][];
+	ditherMode: DitheringMode;
+	gridSize: number;
+	matrixScale: number;
+	matrixX: number;
+	matrixY: number;
+	time: number;
+	x: number;
+	y: number;
+}): number {
+	switch (ditherMode) {
+		case "bayer":
+			return bayerMatrix[matrixY][matrixX] / matrixScale;
+		case "halftone": {
+			const angle = Math.PI / 4;
+			const scale = gridSize * 2;
+			const rotX = x * Math.cos(angle) + y * Math.sin(angle);
+			const rotY = -x * Math.sin(angle) + y * Math.cos(angle);
+			return (Math.sin(rotX / scale) + Math.sin(rotY / scale) + 2) / 4;
+		}
+		case "noise": {
+			const noiseVal =
+				Math.sin(x * 12.9898 + y * 78.233 + time * 100) * 43_758.5453;
+			return noiseVal - Math.floor(noiseVal);
+		}
+		case "crosshatch": {
+			const line1 = (x + y) % (gridSize * 2) < gridSize ? 1 : 0;
+			const line2 = (x - y + gridSize * 4) % (gridSize * 2) < gridSize ? 1 : 0;
+			return (line1 + line2) / 2;
+		}
+		default:
+			return bayerMatrix[matrixY][matrixX] / matrixScale;
+	}
+}
+
+function applyThresholdBias(
+	ditherThreshold: number,
+	threshold: number
+): number {
+	return ditherThreshold * (1 - threshold) + threshold * 0.5;
+}
+
+function computeOriginalColor({
+	b,
+	ditherThreshold,
+	g,
+	r,
+}: {
+	b: number;
+	ditherThreshold: number;
+	g: number;
+	r: number;
+}): RGB {
+	const ditherAmount = ditherThreshold - 0.5;
+	const adjustedR = clamp(r + ditherAmount * 64, 0, 255);
+	const adjustedG = clamp(g + ditherAmount * 64, 0, 255);
+	const adjustedB = clamp(b + ditherAmount * 64, 0, 255);
+
+	const step = 255 / ORIGINAL_COLOR_LEVELS;
+	return [
+		Math.round(adjustedR / step) * step,
+		Math.round(adjustedG / step) * step,
+		Math.round(adjustedB / step) * step,
+	];
+}
+
+function computeColorForMode({
+	b,
+	colorMode,
+	customPalette,
+	ditherThreshold,
+	g,
+	luminance,
+	primaryColor,
+	r,
+	secondaryColor,
+}: {
+	b: number;
+	colorMode: ColorMode;
+	customPalette: readonly RGB[];
+	ditherThreshold: number;
+	g: number;
+	luminance: number;
+	primaryColor: RGB;
+	r: number;
+	secondaryColor: RGB;
+}): RGB {
+	if (colorMode === "grayscale") {
+		return luminance < ditherThreshold ? [0, 0, 0] : [255, 255, 255];
+	}
+
+	if (colorMode === "duotone") {
+		return luminance < ditherThreshold ? primaryColor : secondaryColor;
+	}
+
+	if (colorMode === "custom") {
+		if (customPalette.length === 2) {
+			return luminance < ditherThreshold ? customPalette[0] : customPalette[1];
+		}
+
+		const adjustedLuminance = luminance + (ditherThreshold - 0.5) * 0.5;
+		const paletteIndex = Math.floor(
+			clamp(adjustedLuminance, 0, 1) * (customPalette.length - 1)
+		);
+		return customPalette[paletteIndex] ?? [0, 0, 0];
+	}
+
+	return computeOriginalColor({ b, ditherThreshold, g, r });
+}
+
+function maybeInvertColor(color: RGB, invert: boolean): RGB {
+	if (!invert) {
+		return color;
+	}
+	return [255 - color[0], 255 - color[1], 255 - color[2]];
+}
+
+function computeDitheredCellColor({
+	bayerMatrix,
+	config,
+	displayHeight,
+	displayWidth,
+	effectiveGridSize,
+	matrixScale,
+	matrixSize,
+	sourceData,
+	sourceHeight,
+	sourceWidth,
+	time,
+	x,
+	y,
+}: {
+	bayerMatrix: number[][];
+	config: DitherRenderConfig;
+	displayHeight: number;
+	displayWidth: number;
+	effectiveGridSize: number;
+	matrixScale: number;
+	matrixSize: number;
+	sourceData: Uint8ClampedArray;
+	sourceHeight: number;
+	sourceWidth: number;
+	time: number;
+	x: number;
+	y: number;
+}): RGB | null {
+	const srcX = Math.floor((x / displayWidth) * sourceWidth);
+	const srcY = Math.floor((y / displayHeight) * sourceHeight);
+	const srcIdx = (srcY * sourceWidth + srcX) * 4;
+
+	const alpha = sourceData[srcIdx + 3] ?? 0;
+	if (alpha < TRANSPARENT_ALPHA_THRESHOLD) {
+		return null;
+	}
+
+	const rawR = sourceData[srcIdx] ?? 0;
+	const rawG = sourceData[srcIdx + 1] ?? 0;
+	const rawB = sourceData[srcIdx + 2] ?? 0;
+
+	const r = clamp(
+		(rawR - 128) * config.contrast + 128 + config.brightness * 255,
+		0,
+		255
+	);
+	const g = clamp(
+		(rawG - 128) * config.contrast + 128 + config.brightness * 255,
+		0,
+		255
+	);
+	const b = clamp(
+		(rawB - 128) * config.contrast + 128 + config.brightness * 255,
+		0,
+		255
+	);
+
+	const luminance = getLuminance(r, g, b) / 255;
+
+	const matrixX = Math.floor(x / effectiveGridSize) % matrixSize;
+	const matrixY = Math.floor(y / effectiveGridSize) % matrixSize;
+	const rawThreshold = computeRawDitherThreshold({
+		bayerMatrix,
+		ditherMode: config.ditherMode,
+		gridSize: effectiveGridSize,
+		matrixScale,
+		matrixX,
+		matrixY,
+		time,
+		x,
+		y,
+	});
+	const ditherThreshold = applyThresholdBias(rawThreshold, config.threshold);
+
+	const baseColor = computeColorForMode({
+		b,
+		colorMode: config.colorMode,
+		customPalette: config.customPalette,
+		ditherThreshold,
+		g,
+		luminance,
+		primaryColor: config.primaryColor,
+		r,
+		secondaryColor: config.secondaryColor,
+	});
+
+	return maybeInvertColor(baseColor, config.invert);
+}
+
+function renderDitheredFrame({
+	config,
+	ctx,
+	displayHeight,
+	displayWidth,
+	sourceImageData,
+	time,
+}: {
+	config: DitherRenderConfig;
+	ctx: CanvasRenderingContext2D;
+	displayHeight: number;
+	displayWidth: number;
+	sourceImageData: ImageData;
+	time: number;
+}) {
+	clearWithBackground(ctx, displayWidth, displayHeight, config.backgroundColor);
+
+	const sourceData = sourceImageData.data;
+	const sourceWidth = sourceImageData.width;
+	const sourceHeight = sourceImageData.height;
+
+	const effectiveGridSize = Math.max(1, config.gridSize);
+	const effectivePixelSize = Math.max(
+		1,
+		Math.floor(effectiveGridSize * config.pixelRatio)
+	);
+	const { bayerMatrix, matrixScale, matrixSize } =
+		getBayerConfiguration(effectiveGridSize);
+
+	for (let y = 0; y < displayHeight; y += effectivePixelSize) {
+		for (let x = 0; x < displayWidth; x += effectivePixelSize) {
+			const color = computeDitheredCellColor({
+				bayerMatrix,
+				config,
+				displayHeight,
+				displayWidth,
+				effectiveGridSize,
+				matrixScale,
+				matrixSize,
+				sourceData,
+				sourceHeight,
+				sourceWidth,
+				time,
+				x,
+				y,
+			});
+
+			if (!color) {
+				continue;
+			}
+
+			ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+			ctx.fillRect(x, y, effectivePixelSize, effectivePixelSize);
+		}
+	}
+}
+
+function isGifSource(src: string): boolean {
+	if (src.startsWith("data:image/gif")) {
+		return true;
+	}
+
+	const srcWithoutHash = src.split("#")[0] ?? src;
+	const srcWithoutQuery = srcWithoutHash.split("?")[0] ?? srcWithoutHash;
+	return srcWithoutQuery.toLowerCase().endsWith(".gif");
+}
+
+type DecodedGif = {
+	frames: ImageBitmap[];
+	height: number;
+	width: number;
+};
+
+function isVideoFrame(value: unknown): value is VideoFrame {
+	return typeof VideoFrame !== "undefined" && value instanceof VideoFrame;
+}
+
+async function decodeGifWithImageDecoder(
+	src: string,
+	signal: AbortSignal
+): Promise<DecodedGif | null> {
+	const ImageDecoderConstructor = (
+		globalThis as unknown as { ImageDecoder?: unknown }
+	).ImageDecoder;
+	if (!ImageDecoderConstructor) {
+		return null;
+	}
+
+	const response = await fetch(src, { signal });
+	if (!response.ok) {
+		return null;
+	}
+
+	const buffer = await response.arrayBuffer();
+
+	// The DOM types for ImageDecoder vary by TS/lib version; keep this narrowly typed.
+	const decoder = new (ImageDecoderConstructor as new (options: {
+		data: ArrayBuffer;
+		type: string;
+	}) => {
+		close?: () => void;
+		decode: (options: { frameIndex: number }) => Promise<{ image: unknown }>;
+		tracks: {
+			ready: Promise<void>;
+			selectedTrack: {
+				frameCount: number;
+			};
+		};
+	})({
+		data: buffer,
+		type: "image/gif",
+	});
+
+	await decoder.tracks.ready;
+
+	const frameCount = decoder.tracks.selectedTrack.frameCount;
+	if (frameCount <= 1) {
+		decoder.close?.();
+		return null;
+	}
+
+	const frames: ImageBitmap[] = [];
+
+	for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+		const result = await decoder.decode({ frameIndex });
+		if (signal.aborted) {
+			for (const bitmap of frames) {
+				bitmap.close();
+			}
+			decoder.close?.();
+			return null;
+		}
+
+		const decodedImage = result.image;
+		if (isVideoFrame(decodedImage)) {
+			const bitmap = await createImageBitmap(decodedImage);
+			decodedImage.close();
+			frames.push(bitmap);
+			continue;
+		}
+
+		if (decodedImage instanceof ImageBitmap) {
+			frames.push(decodedImage);
+			continue;
+		}
+
+		decoder.close?.();
+		for (const bitmap of frames) {
+			bitmap.close();
+		}
+		return null;
+	}
+
+	const firstFrame = frames[0];
+	if (!firstFrame) {
+		decoder.close?.();
+		return null;
+	}
+
+	decoder.close?.();
+
+	return {
+		frames,
+		height: firstFrame.height,
+		width: firstFrame.width,
+	};
 }
 
 export const DitherShader: React.FC<DitherShaderProps> = ({
@@ -116,6 +551,8 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 	threshold = 0.5,
 	animated = false,
 	animationSpeed = 0.02,
+	playGifs = true,
+	gifFps = 30,
 	style,
 	className,
 }) => {
@@ -129,6 +566,7 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 		width: 0,
 		height: 0,
 	});
+	const gifFrameTimeRef = useRef<number>(0);
 
 	const [dimensions, setDimensions] = useState<{
 		width: number;
@@ -146,159 +584,34 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 			displayHeight: number,
 			time = 0
 		) => {
-			const canvas = canvasRef.current;
-			if (!(canvas && imageDataRef.current)) {
+			const sourceImageData = imageDataRef.current;
+			if (!sourceImageData) {
 				return;
 			}
 
-			// Clear with background
-			if (backgroundColor !== "transparent") {
-				ctx.fillStyle = backgroundColor;
-				ctx.fillRect(0, 0, displayWidth, displayHeight);
-			} else {
-				ctx.clearRect(0, 0, displayWidth, displayHeight);
-			}
+			const config: DitherRenderConfig = {
+				backgroundColor,
+				brightness,
+				colorMode,
+				contrast,
+				customPalette: parsedCustomPalette,
+				ditherMode,
+				gridSize,
+				invert,
+				pixelRatio,
+				primaryColor: parsedPrimaryColor,
+				secondaryColor: parsedSecondaryColor,
+				threshold,
+			};
 
-			const sourceData = imageDataRef.current.data;
-			const sourceWidth = imageDataRef.current.width;
-			const sourceHeight = imageDataRef.current.height;
-
-			const effectivePixelSize = Math.max(1, Math.floor(gridSize * pixelRatio));
-			const matrixSize = gridSize <= 4 ? 4 : 8;
-			const bayerMatrix = gridSize <= 4 ? BAYER_MATRIX_4x4 : BAYER_MATRIX_8x8;
-			const matrixScale = matrixSize === 4 ? 16 : 64;
-
-			// Process pixels
-			for (let y = 0; y < displayHeight; y += effectivePixelSize) {
-				for (let x = 0; x < displayWidth; x += effectivePixelSize) {
-					// Map display coordinates to source image coordinates
-					const srcX = Math.floor((x / displayWidth) * sourceWidth);
-					const srcY = Math.floor((y / displayHeight) * sourceHeight);
-					const srcIdx = (srcY * sourceWidth + srcX) * 4;
-
-					let r = sourceData[srcIdx] || 0;
-					let g = sourceData[srcIdx + 1] || 0;
-					let b = sourceData[srcIdx + 2] || 0;
-					const a = sourceData[srcIdx + 3] || 0;
-
-					if (a < 10) {
-						continue; // Skip fully transparent pixels
-					}
-
-					// Apply brightness and contrast
-					r = clamp((r - 128) * contrast + 128 + brightness * 255, 0, 255);
-					g = clamp((g - 128) * contrast + 128 + brightness * 255, 0, 255);
-					b = clamp((b - 128) * contrast + 128 + brightness * 255, 0, 255);
-
-					// Calculate luminance
-					const luminance = getLuminance(r, g, b) / 255;
-
-					// Get dither threshold based on mode
-					let ditherThreshold: number;
-					const matrixX = Math.floor(x / gridSize) % matrixSize;
-					const matrixY = Math.floor(y / gridSize) % matrixSize;
-
-					switch (ditherMode) {
-						case "bayer":
-							ditherThreshold = bayerMatrix[matrixY][matrixX] / matrixScale;
-							break;
-						case "halftone": {
-							const angle = Math.PI / 4;
-							const scale = gridSize * 2;
-							const rotX = x * Math.cos(angle) + y * Math.sin(angle);
-							const rotY = -x * Math.sin(angle) + y * Math.cos(angle);
-							const pattern =
-								(Math.sin(rotX / scale) + Math.sin(rotY / scale) + 2) / 4;
-							ditherThreshold = pattern;
-							break;
-						}
-						case "noise": {
-							const noiseVal =
-								Math.sin(x * 12.9898 + y * 78.233 + time * 100) * 43_758.5453;
-							ditherThreshold = noiseVal - Math.floor(noiseVal);
-							break;
-						}
-						case "crosshatch": {
-							const line1 = (x + y) % (gridSize * 2) < gridSize ? 1 : 0;
-							const line2 =
-								(x - y + gridSize * 4) % (gridSize * 2) < gridSize ? 1 : 0;
-							ditherThreshold = (line1 + line2) / 2;
-							break;
-						}
-						default:
-							ditherThreshold = bayerMatrix[matrixY][matrixX] / matrixScale;
-					}
-
-					// Adjust threshold with user setting
-					ditherThreshold = ditherThreshold * (1 - threshold) + threshold * 0.5;
-
-					// Determine output color based on color mode
-					let outputColor: [number, number, number];
-
-					switch (colorMode) {
-						case "grayscale": {
-							const shouldBeDark = luminance < ditherThreshold;
-							outputColor = shouldBeDark ? [0, 0, 0] : [255, 255, 255];
-							break;
-						}
-						case "duotone": {
-							const shouldBeDark = luminance < ditherThreshold;
-							outputColor = shouldBeDark
-								? parsedPrimaryColor
-								: parsedSecondaryColor;
-							break;
-						}
-						case "custom": {
-							if (parsedCustomPalette.length === 2) {
-								const shouldBeDark = luminance < ditherThreshold;
-								outputColor = shouldBeDark
-									? parsedCustomPalette[0]
-									: parsedCustomPalette[1];
-							} else {
-								// Quantize to closest palette color with dithering
-								const adjustedLuminance =
-									luminance + (ditherThreshold - 0.5) * 0.5;
-								const paletteIndex = Math.floor(
-									clamp(adjustedLuminance, 0, 1) *
-										(parsedCustomPalette.length - 1)
-								);
-								outputColor = parsedCustomPalette[paletteIndex];
-							}
-							break;
-						}
-						case "original":
-						default: {
-							// Apply dithering while preserving colors
-							const ditherAmount = ditherThreshold - 0.5;
-							const adjustedR = clamp(r + ditherAmount * 64, 0, 255);
-							const adjustedG = clamp(g + ditherAmount * 64, 0, 255);
-							const adjustedB = clamp(b + ditherAmount * 64, 0, 255);
-
-							// Quantize to fewer levels for dithered look
-							const levels = 4;
-							outputColor = [
-								Math.round(adjustedR / (255 / levels)) * (255 / levels),
-								Math.round(adjustedG / (255 / levels)) * (255 / levels),
-								Math.round(adjustedB / (255 / levels)) * (255 / levels),
-							];
-							break;
-						}
-					}
-
-					// Apply inversion
-					if (invert) {
-						outputColor = [
-							255 - outputColor[0],
-							255 - outputColor[1],
-							255 - outputColor[2],
-						];
-					}
-
-					// Draw the pixel
-					ctx.fillStyle = `rgb(${outputColor[0]}, ${outputColor[1]}, ${outputColor[2]})`;
-					ctx.fillRect(x, y, effectivePixelSize, effectivePixelSize);
-				}
-			}
+			renderDitheredFrame({
+				config,
+				ctx,
+				displayHeight,
+				displayWidth,
+				sourceImageData,
+				time,
+			});
 		},
 		[
 			gridSize,
@@ -343,36 +656,56 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 	// Process image and apply dithering when dimensions or settings change
 	useEffect(() => {
 		const canvas = canvasRef.current;
-		if (!canvas || dimensions.width === 0 || dimensions.height === 0) {
+		const img = imageRef.current;
+		if (!(canvas && img) || dimensions.width === 0 || dimensions.height === 0) {
 			return;
 		}
 
 		let isCancelled = false;
+		const abortController = new AbortController();
+		let decodedGifFrames: ImageBitmap[] | null = null;
 
-		const processImage = (img: HTMLImageElement) => {
-			if (isCancelled) {
-				return;
-			}
+		const displayWidth = dimensions.width;
+		const displayHeight = dimensions.height;
+		const shouldPlayGif = playGifs && isGifSource(src);
+		const shouldAnimate = animated || shouldPlayGif;
+		const minGifFrameMs = 1000 / Math.max(1, gifFps);
+		const canDecodeGif = shouldPlayGif && "ImageDecoder" in globalThis;
 
-			const dpr =
-				typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-			const displayWidth = dimensions.width;
-			const displayHeight = dimensions.height;
-
+		const setupOutputContext = (): CanvasRenderingContext2D | null => {
+			const dpr = window.devicePixelRatio || 1;
 			canvas.width = Math.floor(displayWidth * dpr);
 			canvas.height = Math.floor(displayHeight * dpr);
 
 			const ctx = canvas.getContext("2d");
 			if (!ctx) {
-				return;
+				return null;
 			}
+
 			ctx.resetTransform();
 			ctx.scale(dpr, dpr);
+			return ctx;
+		};
 
-			// Create offscreen canvas to get image data
+		const createImageDataUpdater = ({
+			getSource,
+			sourceHeight,
+			sourceWidth,
+		}: {
+			getSource: () => CanvasImageSource;
+			sourceHeight: number;
+			sourceWidth: number;
+		}): (() => boolean) | null => {
 			const offscreen = document.createElement("canvas");
-			const iw = img.naturalWidth || displayWidth;
-			const ih = img.naturalHeight || displayHeight;
+			offscreen.width = displayWidth;
+			offscreen.height = displayHeight;
+			const offCtx = offscreen.getContext("2d", { willReadFrequently: true });
+			if (!offCtx) {
+				return null;
+			}
+
+			const iw = sourceWidth || displayWidth;
+			const ih = sourceHeight || displayHeight;
 
 			let dw = displayWidth;
 			let dh = displayHeight;
@@ -401,73 +734,279 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 				dy = Math.floor((displayHeight - dh) / 2);
 			}
 
-			offscreen.width = displayWidth;
-			offscreen.height = displayHeight;
-			const offCtx = offscreen.getContext("2d");
-			if (!offCtx) {
-				return;
-			}
+			return () => {
+				offCtx.clearRect(0, 0, displayWidth, displayHeight);
+				offCtx.drawImage(getSource(), dx, dy, dw, dh);
 
-			offCtx.drawImage(img, dx, dy, dw, dh);
+				try {
+					imageDataRef.current = offCtx.getImageData(
+						0,
+						0,
+						displayWidth,
+						displayHeight
+					);
+				} catch {
+					console.error("Could not get image data. CORS issue?");
+					return false;
+				}
 
-			try {
-				imageDataRef.current = offCtx.getImageData(
-					0,
-					0,
-					displayWidth,
-					displayHeight
-				);
-			} catch {
-				console.error("Could not get image data. CORS issue?");
-				return;
-			}
-
-			// Initial render
-			applyDithering(ctx, displayWidth, displayHeight, 0);
-
-			// Setup animation if enabled
-			if (animated) {
-				const animate = () => {
-					if (isCancelled) {
-						return;
-					}
-					timeRef.current += animationSpeed;
-					applyDithering(ctx, displayWidth, displayHeight, timeRef.current);
-					animationRef.current = requestAnimationFrame(animate);
-				};
-				animationRef.current = requestAnimationFrame(animate);
-			}
+				return true;
+			};
 		};
 
-		// If image is already loaded, reprocess it
-		if (imageRef.current && imageRef.current.complete) {
-			processImage(imageRef.current);
-		} else {
-			// Load the image
-			const img = new Image();
-			img.crossOrigin = "anonymous";
-			img.src = src;
+		const startDecodedGifLoop = (
+			ctx: CanvasRenderingContext2D,
+			updateImageData: () => boolean,
+			frameCount: number
+		) => {
+			const frameMs = 1000 / Math.max(1, gifFps);
+			let currentFrameIndex = 0;
+			let startTimeMs = 0;
 
-			img.onload = () => {
+			const tick = (now: number) => {
 				if (isCancelled) {
 					return;
 				}
-				imageRef.current = img;
-				processImage(img);
+
+				if (startTimeMs === 0) {
+					startTimeMs = now;
+				}
+
+				const elapsedMs = now - startTimeMs;
+				const nextFrameIndex =
+					Math.floor(elapsedMs / frameMs) % Math.max(1, frameCount);
+				const didChangeFrame = nextFrameIndex !== currentFrameIndex;
+
+				if (didChangeFrame) {
+					currentFrameIndex = nextFrameIndex;
+					gifFrameTimeRef.current = now;
+					if (!updateImageData()) {
+						return;
+					}
+				}
+
+				const time = updateTime();
+				if (animated || didChangeFrame) {
+					applyDithering(ctx, displayWidth, displayHeight, time);
+				}
+
+				animationRef.current = requestAnimationFrame(tick);
 			};
 
-			img.onerror = () => {
-				console.error("Failed to load image for DitherShader:", src);
+			animationRef.current = requestAnimationFrame(tick);
+		};
+
+		const updateTime = (): number => {
+			if (!animated) {
+				return 0;
+			}
+			timeRef.current += animationSpeed;
+			return timeRef.current;
+		};
+
+		const maybeUpdateGifFrame = (
+			now: number,
+			updateImageData: () => boolean
+		): boolean => {
+			if (!shouldPlayGif) {
+				return false;
+			}
+
+			if (gifFrameTimeRef.current !== 0) {
+				const elapsed = now - gifFrameTimeRef.current;
+				if (elapsed < minGifFrameMs) {
+					return false;
+				}
+			}
+
+			gifFrameTimeRef.current = now;
+			return updateImageData();
+		};
+
+		const startLoop = (
+			ctx: CanvasRenderingContext2D,
+			updateImageData: () => boolean
+		) => {
+			const tick = (now: number) => {
+				if (isCancelled) {
+					return;
+				}
+
+				const didUpdateGifFrame = maybeUpdateGifFrame(now, updateImageData);
+				if (shouldPlayGif && !animated && !didUpdateGifFrame) {
+					animationRef.current = requestAnimationFrame(tick);
+					return;
+				}
+
+				const time = updateTime();
+				if (animated || didUpdateGifFrame) {
+					applyDithering(ctx, displayWidth, displayHeight, time);
+				}
+
+				animationRef.current = requestAnimationFrame(tick);
 			};
+
+			animationRef.current = requestAnimationFrame(tick);
+		};
+
+		const startRendering = () => {
+			if (isCancelled) {
+				return;
+			}
+
+			if (animationRef.current) {
+				cancelAnimationFrame(animationRef.current);
+			}
+
+			timeRef.current = 0;
+			gifFrameTimeRef.current = 0;
+
+			const ctx = setupOutputContext();
+			if (!ctx) {
+				return;
+			}
+
+			const startWithImageElement = () => {
+				const updateImageData = createImageDataUpdater({
+					getSource: () => img,
+					sourceHeight: img.naturalHeight || displayHeight,
+					sourceWidth: img.naturalWidth || displayWidth,
+				});
+				if (!updateImageData) {
+					return;
+				}
+
+				if (!updateImageData()) {
+					return;
+				}
+
+				applyDithering(ctx, displayWidth, displayHeight, 0);
+
+				if (shouldAnimate) {
+					startLoop(ctx, updateImageData);
+				}
+			};
+
+			const startWithDecodedGif = async () => {
+				try {
+					const decoded = await decodeGifWithImageDecoder(
+						src,
+						abortController.signal
+					);
+					if (isCancelled || !decoded) {
+						startWithImageElement();
+						return;
+					}
+
+					decodedGifFrames = decoded.frames;
+					let currentFrameIndex = 0;
+
+					const updateImageData = createImageDataUpdater({
+						getSource: () => decoded.frames[currentFrameIndex] ?? img,
+						sourceHeight: decoded.height,
+						sourceWidth: decoded.width,
+					});
+					if (!updateImageData) {
+						startWithImageElement();
+						return;
+					}
+
+					if (!updateImageData()) {
+						startWithImageElement();
+						return;
+					}
+
+					applyDithering(ctx, displayWidth, displayHeight, 0);
+
+					if (!shouldAnimate) {
+						return;
+					}
+
+					const tickFrameIndex = (now: number) => {
+						if (isCancelled) {
+							return;
+						}
+
+						if (animated) {
+							timeRef.current += animationSpeed;
+							applyDithering(ctx, displayWidth, displayHeight, timeRef.current);
+						}
+
+						const shouldAdvance =
+							gifFrameTimeRef.current === 0 ||
+							now - gifFrameTimeRef.current >= minGifFrameMs;
+						if (shouldAdvance) {
+							gifFrameTimeRef.current = now;
+							currentFrameIndex =
+								(currentFrameIndex + 1) % Math.max(1, decoded.frames.length);
+							if (updateImageData()) {
+								applyDithering(
+									ctx,
+									displayWidth,
+									displayHeight,
+									animated ? timeRef.current : 0
+								);
+							}
+						}
+
+						animationRef.current = requestAnimationFrame(tickFrameIndex);
+					};
+
+					animationRef.current = requestAnimationFrame(tickFrameIndex);
+				} catch {
+					startWithImageElement();
+				}
+			};
+
+			if (canDecodeGif) {
+				void startWithDecodedGif();
+				return;
+			}
+
+			startWithImageElement();
+		};
+
+		const handleLoad = () => {
+			startRendering();
+		};
+
+		const handleError = () => {
+			console.error("Failed to load image for DitherShader:", src);
+		};
+
+		img.addEventListener("load", handleLoad);
+		img.addEventListener("error", handleError);
+
+		// If image is already loaded, render immediately
+		if (img.complete && img.naturalWidth > 0) {
+			startRendering();
 		}
 
 		return () => {
 			isCancelled = true;
+			abortController.abort();
+			if (decodedGifFrames) {
+				for (const bitmap of decodedGifFrames) {
+					bitmap.close();
+				}
+				decodedGifFrames = null;
+			}
+			img.removeEventListener("load", handleLoad);
+			img.removeEventListener("error", handleError);
 			if (animationRef.current) {
 				cancelAnimationFrame(animationRef.current);
 			}
 		};
-	}, [src, dimensions, objectFit, animated, animationSpeed, applyDithering]);
+	}, [
+		src,
+		dimensions,
+		objectFit,
+		animated,
+		animationSpeed,
+		applyDithering,
+		playGifs,
+		gifFps,
+	]);
 
 	return (
 		<div
@@ -475,6 +1014,16 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 			ref={containerRef}
 			style={style}
 		>
+			<img
+				alt=""
+				aria-hidden="true"
+				className="pointer-events-none absolute top-0 left-0 h-px w-px opacity-0"
+				crossOrigin="anonymous"
+				height={1}
+				ref={imageRef}
+				src={src}
+				width={1}
+			/>
 			<canvas
 				aria-label="Dithered image"
 				className="absolute inset-0 h-full w-full"

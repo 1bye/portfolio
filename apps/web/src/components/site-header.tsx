@@ -20,7 +20,7 @@ export default function Header() {
 				/>*/}
 				<div className="flex flex-row items-center gap-2">
 					<RandomizedText>1bye</RandomizedText>
-					<span className="mt-1 select-none font-mono text-muted-foreground/50 text-xs">
+					<span className="mt-1 flex select-none flex-row font-mono text-muted-foreground/50 text-xs">
 						<RandomizedText>// Yurii Hulyk</RandomizedText>
 					</span>
 				</div>

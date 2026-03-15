@@ -313,3 +313,26 @@
 		content: "";
 	}
 }
+
+@layer components {
+	/* Media Chrome (video controls) */
+	media-time-range.ui-media-time-range {
+		--media-control-background: transparent;
+		--media-control-hover-background: transparent;
+		--media-control-height: 14px;
+		--media-control-padding: 0px;
+		--media-range-track-height: 4px;
+		--media-range-track-border-radius: 999px;
+		--media-range-track-background: rgb(255 255 255 / 0.25);
+		--media-time-range-buffered-color: rgb(255 255 255 / 0.35);
+		--media-range-bar-color: rgb(255 255 255 / 0.95);
+		--media-range-thumb-width: 12px;
+		--media-range-thumb-height: 12px;
+		--media-range-thumb-border-radius: 999px;
+		--media-range-thumb-background: rgb(255 255 255 / 0.95);
+		--media-range-thumb-border: 1px solid rgb(0 0 0 / 0.15);
+		--media-range-thumb-box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+		--media-focus-box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.35);
+		width: 100%;
+	}
+}

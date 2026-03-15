@@ -46,7 +46,12 @@ export function ProjectsBlock() {
 
 	return (
 		<section className="flex flex-col gap-3">
-			<RandomizedText>Projects</RandomizedText>
+			<div className="flex flex-row items-center justify-between">
+				<RandomizedText>Projects</RandomizedText>
+				<RandomizedText className="text-muted-foreground text-sm italic">
+					Hover projects to see more information
+				</RandomizedText>
+			</div>
 
 			<div className="flex flex-col">
 				{Object.entries(grouped).map(([year, projects]) => (
@@ -91,9 +96,9 @@ export function ProjectItem({ title, description, icon, media }: Project) {
 
 				<div>
 					<RandomizedText>{title}</RandomizedText>
-					{/*<RandomizedText className="text-sm">{description}</RandomizedText>*/}
 				</div>
 			</div>
+			{/*<RandomizedText className="text-sm">{description}</RandomizedText>*/}
 
 			<ProjectMedia isHovered={isHovered} media={media} />
 		</div>
@@ -145,7 +150,7 @@ function ProjectMedia({
 	}, [isHovered]);
 
 	return (
-		<div className="flex">
+		<div className="flex max-w-86 overflow-auto sm:max-w-2xl">
 			<div className="relative flex flex-row">
 				{media.map((_, i) => (
 					<ProjectItemMedia

@@ -21,9 +21,9 @@ export interface ProjectInfo {
 	category?: string;
 	companyIcon?: string;
 	companyName?: string;
-	companyNote?: string;
 	companyUrl?: string;
 	description: string;
+	note?: string;
 }
 
 export interface ProjectMedia {
@@ -40,7 +40,7 @@ export function ProjectItem({
 	companyIcon,
 	companyName,
 	companyUrl,
-	companyNote,
+	note,
 	category,
 	unavailable,
 }: Project) {
@@ -54,8 +54,16 @@ export function ProjectItem({
 				onMouseLeave={() => setIsHovered(false)}
 			>
 				<div className="flex w-full flex-row items-center gap-1">
-					<div>
-						<img alt={title} height={20} src={icon} width={20} />
+					<div className="overflow-hidden rounded-full">
+						<img
+							alt={title}
+							height={20}
+							src={icon}
+							style={{
+								filter: "grayscale(0.6)",
+							}}
+							width={20}
+						/>
 					</div>
 
 					<div className="relative">
@@ -91,10 +99,10 @@ export function ProjectItem({
 				<ProjectInfo
 					companyIcon={companyIcon}
 					companyName={companyName}
-					companyNote={companyNote}
 					companyUrl={companyUrl}
 					description={description}
 					isHovered={isHovered}
+					note={note}
 				/>
 
 				<ProjectMedia isHovered={isHovered} media={media} />
@@ -110,7 +118,7 @@ function ProjectInfo({
 	companyIcon,
 	companyName,
 	companyUrl,
-	companyNote,
+	note,
 }: ProjectInfo & {
 	isHovered: boolean;
 	height?: number;
@@ -123,7 +131,7 @@ function ProjectInfo({
 			return;
 		}
 		animate(containerRef.current, {
-			height: height ?? 100,
+			height: height ?? 85,
 			ease: spring({
 				bounce: 0.3,
 				duration: 628,
@@ -161,29 +169,32 @@ function ProjectInfo({
 			<p className="text-sm">{description}</p>
 
 			<div className="relative z-10 flex flex-row gap-3">
-				{companyName && (
+				{(companyName || note) && (
 					<div className="flex flex-row items-center gap-1">
-						<div
-							className={cn(
-								"flex flex-row items-center gap-1",
-								companyUrl && "cursor-pointer border-border border-b"
-							)}
-						>
-							{companyIcon && (
-								<img alt={companyName} className="size-4" src={companyIcon} />
-							)}
-							<a
-								className="text-sm"
-								href={companyUrl}
-								rel="noopener noreferrer"
-								target="_blank"
+						{companyName && (
+							<div
+								className={cn(
+									"flex flex-row items-center gap-1",
+									companyUrl && "cursor-pointer border-border border-b"
+								)}
 							>
-								{companyName}
-							</a>
-						</div>
-						{companyNote && (
+								{companyIcon && (
+									<img alt={companyName} className="size-4" src={companyIcon} />
+								)}
+								<a
+									className="text-sm"
+									href={companyUrl}
+									rel="noopener noreferrer"
+									target="_blank"
+								>
+									{companyName}
+								</a>
+							</div>
+						)}
+
+						{note && (
 							<span className="text-muted-foreground text-xs italic">
-								“{companyNote}”
+								“{note}”
 							</span>
 						)}
 					</div>
@@ -280,13 +291,14 @@ function ProjectItemMedia({
 }) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const mediaRef = useRef<HTMLDivElement>(null);
+	const imgRef = useRef<HTMLImageElement>(null);
 
 	const mediaWidth = 128;
 	const mediaHeight = 80;
 
 	// hovered state
 	const animateTo = () => {
-		if (!(containerRef.current && mediaRef.current)) {
+		if (!(containerRef.current && mediaRef.current && imgRef.current)) {
 			return;
 		}
 		// Container animation
@@ -309,11 +321,17 @@ function ProjectItemMedia({
 		animate(mediaRef.current, {
 			opacity: 1,
 		});
+
+		// Image
+		animate(imgRef.current, {
+			opacity: 0,
+			duration: 100,
+		});
 	};
 
 	// initial state
 	const animateFrom = () => {
-		if (!(containerRef.current && mediaRef.current)) {
+		if (!(containerRef.current && mediaRef.current && imgRef.current)) {
 			return;
 		}
 		// Container animation
@@ -337,6 +355,12 @@ function ProjectItemMedia({
 		// Media animation
 		animate(mediaRef.current, {
 			opacity: 0,
+		});
+
+		// Image
+		animate(imgRef.current, {
+			opacity: 1,
+			duration: 2500,
 		});
 	};
 
@@ -362,46 +386,47 @@ function ProjectItemMedia({
 				};
 
 	return (
-		<>
-			<div
-				className={cn(
-					"group/media size-4 overflow-hidden rounded-sm border bg-neutral-400 ring-2 ring-background",
-					isHovered && "ring-0"
-				)}
-				data-slot="media"
-				ref={containerRef}
-			>
-				<div ref={mediaRef}>
-					<PhotoView
-						index={index}
-						render={render}
-						src={media.type === "image" ? media.url : undefined}
-					>
-						{media.type === "image" && (
-							<ProjectItemImage
-								height={mediaHeight}
-								src={media.url}
-								width={mediaWidth}
-							/>
-						)}
-						{media.type === "video" && (
-							<ProjectItemVideo
-								gif={media.gif}
-								height={mediaHeight}
-								src={media.url}
-								width={mediaWidth}
-							/>
-						)}
-					</PhotoView>
-				</div>
+		<div
+			className={cn(
+				"group/media relative size-4 overflow-hidden rounded-sm border bg-neutral-400 ring-2 ring-background",
+				isHovered && "ring-0"
+			)}
+			data-slot="media"
+			ref={containerRef}
+		>
+			<img
+				alt="Ordered Dither Gradient"
+				className="absolute top-0 left-0"
+				height={16}
+				ref={imgRef}
+				src="ordered-dither-gradient-03.png"
+				width={16}
+			/>
+
+			<div ref={mediaRef}>
+				<PhotoView
+					index={index}
+					render={render}
+					src={media.type === "image" ? media.url : undefined}
+				>
+					{media.type === "image" && (
+						<ProjectItemImage
+							height={mediaHeight}
+							src={media.url}
+							width={mediaWidth}
+						/>
+					)}
+					{media.type === "video" && (
+						<ProjectItemVideo
+							gif={media.gif}
+							height={mediaHeight}
+							src={media.url}
+							width={mediaWidth}
+						/>
+					)}
+				</PhotoView>
 			</div>
-			{/*<div
-				className="h-fit w-full max-w-32 border border-border bg-muted"
-				style={{
-					aspectRatio: "4/3",
-				}}
-			/>*/}
-		</>
+		</div>
 	);
 }
 
@@ -414,12 +439,8 @@ function ProjectItemImage({
 	width: number;
 	height: number;
 }) {
-	const [isHovered, setIsHovered] = useState(false);
-
 	return (
 		<div
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}
 			style={{
 				width,
 				height,
@@ -427,7 +448,6 @@ function ProjectItemImage({
 		>
 			<DitherShader
 				className="h-full w-full object-cover"
-				colorMode={isHovered ? "original" : "grayscale"}
 				ditherMode="bayer"
 				gridSize={1}
 				src={src}

@@ -1,8 +1,8 @@
-import { RandomizedText } from "@portfolio/ui/components/randomized-text";
 import {
 	ExperienceItem,
 	type ExperienceItemType,
 } from "@/components/common/work-experience";
+import { RevealText } from "@/components/reveal/reveal-text";
 
 export function WorkExperienceBlock() {
 	const workExperiences: ExperienceItemType[] = [
@@ -71,7 +71,7 @@ export function WorkExperienceBlock() {
 	return (
 		<section className="flex flex-col gap-3">
 			<div className="flex flex-row items-center justify-between">
-				<RandomizedText>Work experience</RandomizedText>
+				<RevealText>Work experience</RevealText>
 				{/*<div>
 					<RandomizedText className="border-border border-b text-muted-foreground text-sm italic [&_span]:mr-0">
 						Hover

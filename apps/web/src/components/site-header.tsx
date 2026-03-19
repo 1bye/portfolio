@@ -1,5 +1,5 @@
-import { RandomizedText } from "@portfolio/ui/components/randomized-text";
 import { Link } from "@tanstack/react-router";
+import { RevealText } from "./reveal/reveal-text";
 import { useRootCanvas } from "./root-canvas/provider";
 
 export default function Header() {
@@ -19,9 +19,9 @@ export default function Header() {
 					orientation="vertical"
 				/>*/}
 				<div className="flex flex-row items-center gap-2">
-					<RandomizedText>1bye</RandomizedText>
+					<RevealText>1bye</RevealText>
 					<span className="mt-1 flex select-none flex-row font-mono text-muted-foreground/50 text-xs">
-						<RandomizedText>// Yurii Hulyk</RandomizedText>
+						<RevealText>// Yurii Hulyk</RevealText>
 					</span>
 				</div>
 			</div>
@@ -29,19 +29,19 @@ export default function Header() {
 			<div className="flex flex-row items-center gap-3">
 				<div className="flex flex-row items-center gap-2">
 					<Link className="flex" to="/">
-						<RandomizedText className="text-sm" once split="chars">
+						<RevealText className="text-sm" split="chars">
 							Home
-						</RandomizedText>
+						</RevealText>
 					</Link>
 					<Link className="flex" to="/projects">
-						<RandomizedText className="text-sm" once split="chars">
+						<RevealText className="text-sm" split="chars">
 							Projects
-						</RandomizedText>
+						</RevealText>
 					</Link>
 					<Link className="flex" to="/blog">
-						<RandomizedText className="text-sm" once split="chars">
+						<RevealText className="text-sm" split="chars">
 							Blog
-						</RandomizedText>
+						</RevealText>
 					</Link>
 				</div>
 				{/*<BlockSeparator

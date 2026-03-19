@@ -3,11 +3,12 @@ import {
 	PhotoView,
 	PhotoViewProvider,
 } from "@portfolio/ui/components/photo-view";
-import { RandomizedText } from "@portfolio/ui/components/randomized-text";
 import { VideoPlayer } from "@portfolio/ui/components/video";
 import { cn } from "@portfolio/ui/lib/utils";
 import { animate, spring } from "animejs";
 import { useEffect, useRef, useState } from "react";
+import { RevealText } from "@/components/reveal/reveal-text";
+import { useStickyBoolean } from "@/hooks/use-sticky-boolean";
 
 export interface Project extends ProjectInfo {
 	icon: string;
@@ -98,11 +99,11 @@ export function ProjectItem({
 					</div>
 
 					<div className="relative">
-						<RandomizedText
+						<RevealText
 							className={cn(unavailable && "text-muted-foreground italic")}
 						>
 							{title}
-						</RandomizedText>
+						</RevealText>
 
 						<div
 							className="absolute top-1/2 left-0 -translate-y-1/2 overflow-hidden"
@@ -128,9 +129,9 @@ export function ProjectItem({
 					</div>
 
 					{category && (
-						<RandomizedText className="mt-1 flex whitespace-nowrap font-mono text-muted-foreground/50 text-xs italic">
+						<RevealText className="mt-1 flex whitespace-nowrap font-mono text-muted-foreground/50 text-xs italic">
 							{`# ${category}`}
-						</RandomizedText>
+						</RevealText>
 					)}
 				</div>
 				<ProjectInfo
@@ -335,6 +336,7 @@ function ProjectItemMedia({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const mediaRef = useRef<HTMLDivElement>(null);
 	const imgRef = useRef<HTMLImageElement>(null);
+	const hasBeenHovered = useStickyBoolean(isHovered ?? false);
 
 	const mediaWidth = 128;
 	const mediaHeight = 80;
@@ -462,27 +464,29 @@ function ProjectItemMedia({
 					opacity: 0,
 				}}
 			>
-				<PhotoView
-					index={index}
-					render={render}
-					src={media.type === "image" ? media.url : undefined}
-				>
-					{media.type === "image" && (
-						<ProjectItemImage
-							height={mediaHeight}
-							src={media.url}
-							width={mediaWidth}
-						/>
-					)}
-					{media.type === "video" && (
-						<ProjectItemVideo
-							gif={media.gif}
-							height={mediaHeight}
-							src={media.url}
-							width={mediaWidth}
-						/>
-					)}
-				</PhotoView>
+				{hasBeenHovered && (
+					<PhotoView
+						index={index}
+						render={render}
+						src={media.type === "image" ? media.url : undefined}
+					>
+						{media.type === "image" && (
+							<ProjectItemImage
+								height={mediaHeight}
+								src={media.url}
+								width={mediaWidth}
+							/>
+						)}
+						{media.type === "video" && (
+							<ProjectItemVideo
+								gif={media.gif}
+								height={mediaHeight}
+								src={media.url}
+								width={mediaWidth}
+							/>
+						)}
+					</PhotoView>
+				)}
 			</div>
 		</div>
 	);

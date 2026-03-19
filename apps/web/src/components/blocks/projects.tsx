@@ -1,4 +1,4 @@
-import { RandomizedText } from "@portfolio/ui/components/randomized-text";
+import { RevealText } from "@/components/reveal/reveal-text";
 import { type Project, ProjectItem } from "../common/project";
 
 export function ProjectsBlock() {
@@ -174,14 +174,14 @@ export function ProjectsBlock() {
 	return (
 		<section className="flex flex-col gap-3">
 			<div className="flex flex-row items-center justify-between">
-				<RandomizedText>Projects</RandomizedText>
+				<RevealText>Projects</RevealText>
 				<div>
-					<RandomizedText className="border-border border-b text-muted-foreground text-sm italic [&_span]:mr-0">
+					<RevealText className="border-border border-b text-muted-foreground text-sm italic [&_span]:mr-0">
 						Hover
-					</RandomizedText>
-					<RandomizedText className="pl-0.5 text-muted-foreground text-sm italic">
+					</RevealText>
+					<RevealText className="pl-0.5 text-muted-foreground text-sm italic">
 						projects to see more information
-					</RandomizedText>
+					</RevealText>
 				</div>
 			</div>
 

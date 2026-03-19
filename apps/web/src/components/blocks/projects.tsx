@@ -188,7 +188,9 @@ export function ProjectsBlock() {
 			<div className="flex flex-col gap-6">
 				{Object.entries(sortedGrouped).map(([, [year, projects]]) => (
 					<div className="flex flex-row gap-8" key={year}>
-						<span className="text-muted-foreground">{year}</span>
+						<span className="w-9 shrink-0 whitespace-nowrap text-muted-foreground">
+							<RevealText>{year}</RevealText>
+						</span>
 						<div className="flex flex-col gap-6">
 							{projects.map((project) => (
 								<ProjectItem key={project.title} {...project} />

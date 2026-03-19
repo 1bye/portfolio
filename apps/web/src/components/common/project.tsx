@@ -9,6 +9,7 @@ import { animate, spring } from "animejs";
 import { useEffect, useRef, useState } from "react";
 import { RevealText } from "@/components/reveal/reveal-text";
 import { useStickyBoolean } from "@/hooks/use-sticky-boolean";
+import { RevealBlock } from "../reveal/reveal-block";
 
 export interface Project extends ProjectInfo {
 	icon: string;
@@ -56,7 +57,7 @@ export function ProjectItem({
 		animate(unavailableStrokeRef.current, {
 			width: "100%",
 			duration: 300,
-			delay: 600,
+			delay: 100,
 		});
 	};
 
@@ -70,13 +71,13 @@ export function ProjectItem({
 		});
 	};
 
-	useEffect(() => {
-		if (unavailable) {
-			animateTo();
-		} else {
-			animateFrom();
-		}
-	}, []);
+	// useEffect(() => {
+	// 	if (unavailable) {
+	// 		animateTo();
+	// 	} else {
+	// 		animateFrom();
+	// 	}
+	// }, []);
 
 	return (
 		<PhotoViewProvider>
@@ -86,7 +87,16 @@ export function ProjectItem({
 				onMouseLeave={() => setIsHovered(false)}
 			>
 				<div className="flex w-full flex-row items-center gap-1">
-					<div className="overflow-hidden rounded-full">
+					<RevealBlock
+						className="overflow-hidden rounded-full"
+						onDone={() => {
+							if (unavailable) {
+								animateTo();
+							} else {
+								animateFrom();
+							}
+						}}
+					>
 						<img
 							alt={title}
 							height={20}
@@ -96,7 +106,7 @@ export function ProjectItem({
 							}}
 							width={20}
 						/>
-					</div>
+					</RevealBlock>
 
 					<div className="relative">
 						<RevealText
@@ -207,13 +217,13 @@ function ProjectInfo({
 				height: 0,
 			}}
 		>
-			<p className="text-sm">{description}</p>
+			<RevealText className="text-sm">{description}</RevealText>
 
 			<div className="relative z-10 flex flex-row gap-3">
 				{(companyName || note) && (
 					<div className="flex flex-row items-center gap-1">
 						{companyName && (
-							<div
+							<RevealBlock
 								className={cn(
 									"flex flex-row items-center gap-1",
 									companyUrl && "cursor-pointer border-border border-b"
@@ -230,13 +240,13 @@ function ProjectInfo({
 								>
 									{companyName}
 								</a>
-							</div>
+							</RevealBlock>
 						)}
 
 						{note && (
-							<span className="text-muted-foreground text-xs italic">
-								“{note}”
-							</span>
+							<RevealText className="text-muted-foreground text-xs italic">
+								{`“${note}”`}
+							</RevealText>
 						)}
 					</div>
 				)}
@@ -303,12 +313,13 @@ function ProjectMedia({
 		<div className="mt-1 flex max-w-86 overflow-auto sm:max-w-140">
 			<div className="relative flex flex-row">
 				{media.map((_, i) => (
-					<ProjectItemMedia
-						index={i}
-						isHovered={isHovered}
-						key={i}
-						media={media[i]}
-					/>
+					<RevealBlock key={i}>
+						<ProjectItemMedia
+							index={i}
+							isHovered={isHovered}
+							media={media[i]}
+						/>
+					</RevealBlock>
 				))}
 			</div>
 			<span
@@ -318,7 +329,7 @@ function ProjectMedia({
 					opacity: 1,
 				}}
 			>
-				{media.length} media
+				<RevealText>{`${media.length} media`}</RevealText>
 			</span>
 		</div>
 	);

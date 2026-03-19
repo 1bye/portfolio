@@ -3,6 +3,8 @@ import { cn } from "@portfolio/ui/lib/utils";
 import { animate, spring } from "animejs";
 import { type ComponentProps, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { RevealBlock } from "../reveal/reveal-block";
+import { RevealText } from "../reveal/reveal-text";
 
 /**
  * Represents the valid keys of the `iconMap` object, used to specify the type of icon
@@ -69,19 +71,19 @@ export function ExperienceItem({ experience }: ExperienceItemProps) {
 		<div className="">
 			<div className="not-prose flex items-center gap-1">
 				{experience.companyLogo && (
-					<div className="flex size-6 shrink-0 items-center justify-center">
+					<RevealBlock className="flex size-6 shrink-0 items-center justify-center">
 						<img
 							alt={experience.companyName}
 							height={20}
 							src={experience.companyLogo}
 							width={20}
 						/>
-					</div>
+					</RevealBlock>
 				)}
 
-				<h3 className="font-medium text-foreground leading-snug">
+				<RevealText className="font-medium text-foreground leading-snug">
 					{experience.companyName}
-				</h3>
+				</RevealText>
 
 				{/*{experience.isCurrentEmployer && (
 					<span className="relative flex items-center justify-center">
@@ -166,9 +168,9 @@ export function ExperiencePositionItem({
 							<ExperienceIcon className="size-4" />
 						</div>*/}
 
-						<h4 className="flex-1 text-balance font-medium text-foreground text-sm">
+						<RevealText className="flex-1 text-balance font-medium text-foreground text-sm">
 							{position.title}
-						</h4>
+						</RevealText>
 					</div>
 
 					<div className="relative z-1 flex items-center gap-2 text-muted-foreground text-sm">
@@ -176,39 +178,49 @@ export function ExperiencePositionItem({
 							<>
 								<dl>
 									<dt className="sr-only">Employment Type</dt>
-									<dd>{position.employmentType}</dd>
+									<dd>
+										<RevealText>{position.employmentType}</RevealText>
+									</dd>
 								</dl>
 
-								<Separator
-									className="data-vertical:h-4 data-vertical:self-center"
-									orientation="vertical"
-								/>
+								<RevealBlock>
+									<Separator
+										className="data-vertical:h-4 data-vertical:self-center"
+										orientation="vertical"
+									/>
+								</RevealBlock>
 							</>
 						)}
 
 						<dl>
 							<dt className="sr-only">Employment Period</dt>
-							<dd>{position.employmentPeriod}</dd>
+							<dd>
+								<RevealText>{position.employmentPeriod}</RevealText>
+							</dd>
 						</dl>
 					</div>
 				</div>
 
 				<div className="overflow-hidden" ref={infoRef}>
 					{position.description && (
-						<Prose className="text-xs">
-							<ReactMarkdown>{position.description}</ReactMarkdown>
-						</Prose>
+						<RevealBlock>
+							<Prose className="text-xs">
+								<ReactMarkdown>{position.description}</ReactMarkdown>
+							</Prose>
+						</RevealBlock>
 					)}
 				</div>
 
 				{Array.isArray(position.skills) && position.skills.length > 0 && (
-					<ul className="not-prose mt-1 flex flex-wrap gap-1">
+					<ul className="not-prose flex flex-wrap gap-1">
 						{position.skills.map((skill, index) => (
 							<li className="flex" key={index}>
-								<Skill>
-									{skill}
-									{index === (position.skills?.length ?? 0) - 1 ? "" : ","}
-								</Skill>
+								<RevealBlock>
+									<Skill>
+										{skill}
+										{index === (position.skills?.length ?? 0) - 1 ? "" : ","}
+									</Skill>
+								</RevealBlock>
 							</li>
 						))}
 					</ul>

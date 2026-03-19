@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProfileBlock } from "@/components/blocks/profile";
 import { ProjectsBlock } from "@/components/blocks/projects";
+import { WorkExperienceBlock } from "@/components/blocks/work-experience";
 import SiteHeader from "@/components/site-header";
 
 export const Route = createFileRoute("/")({
@@ -15,6 +16,8 @@ function HomeComponent() {
 			<ProfileBlock />
 			<div className="w-full pt-8" />
 			<ProjectsBlock />
+			<div className="w-full pt-8" />
+			<WorkExperienceBlock />
 		</div>
 	);
 }

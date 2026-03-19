@@ -45,6 +45,37 @@ export function ProjectItem({
 	unavailable,
 }: Project) {
 	const [isHovered, setIsHovered] = useState(false);
+	const unavailableStrokeRef = useRef<HTMLParagraphElement>(null);
+
+	// end state
+	const animateTo = () => {
+		if (!unavailableStrokeRef.current) {
+			return;
+		}
+		animate(unavailableStrokeRef.current, {
+			width: "100%",
+			duration: 300,
+			delay: 600,
+		});
+	};
+
+	// initial state
+	const animateFrom = () => {
+		if (!unavailableStrokeRef.current) {
+			return;
+		}
+		animate(unavailableStrokeRef.current, {
+			width: "0%",
+		});
+	};
+
+	useEffect(() => {
+		if (unavailable) {
+			animateTo();
+		} else {
+			animateFrom();
+		}
+	}, []);
 
 	return (
 		<PhotoViewProvider>
@@ -73,9 +104,15 @@ export function ProjectItem({
 							{title}
 						</RandomizedText>
 
-						{unavailable && (
+						<div
+							className="absolute top-1/2 left-0 -translate-y-1/2 overflow-hidden"
+							ref={unavailableStrokeRef}
+							style={{
+								width: "0%",
+							}}
+						>
 							<svg
-								className="absolute top-1/2 left-0 w-full -translate-y-1/2"
+								className=""
 								height="6"
 								preserveAspectRatio="none"
 								viewBox="0 0 100 6"
@@ -87,13 +124,13 @@ export function ProjectItem({
 									strokeWidth="2"
 								/>
 							</svg>
-						)}
+						</div>
 					</div>
 
 					{category && (
-						<span className="mt-1 flex whitespace-nowrap font-mono text-muted-foreground/50 text-xs italic">
+						<RandomizedText className="mt-1 flex whitespace-nowrap font-mono text-muted-foreground/50 text-xs italic">
 							{`# ${category}`}
-						</span>
+						</RandomizedText>
 					)}
 				</div>
 				<ProjectInfo
@@ -165,6 +202,9 @@ function ProjectInfo({
 		<div
 			className="relative mt-1 flex flex-col justify-between overflow-hidden"
 			ref={containerRef}
+			style={{
+				height: 0,
+			}}
 		>
 			<p className="text-sm">{description}</p>
 
@@ -273,6 +313,9 @@ function ProjectMedia({
 			<span
 				className="select-none whitespace-nowrap pl-1.5 text-muted-foreground text-xs"
 				ref={spanRef}
+				style={{
+					opacity: 1,
+				}}
 			>
 				{media.length} media
 			</span>
@@ -393,6 +436,13 @@ function ProjectItemMedia({
 			)}
 			data-slot="media"
 			ref={containerRef}
+			style={{
+				width: 16,
+				height: 16,
+				marginInlineStart: index === 0 ? 0 : -6,
+				marginRight: 0,
+				borderWidth: 0,
+			}}
 		>
 			<img
 				alt="Ordered Dither Gradient"
@@ -400,10 +450,18 @@ function ProjectItemMedia({
 				height={16}
 				ref={imgRef}
 				src="ordered-dither-gradient-03.png"
+				style={{
+					opacity: 1,
+				}}
 				width={16}
 			/>
 
-			<div ref={mediaRef}>
+			<div
+				ref={mediaRef}
+				style={{
+					opacity: 0,
+				}}
+			>
 				<PhotoView
 					index={index}
 					render={render}

@@ -462,19 +462,21 @@ async function decodeGifWithImageDecoder(
 	const buffer = await response.arrayBuffer();
 
 	// The DOM types for ImageDecoder vary by TS/lib version; keep this narrowly typed.
-	const decoder = new (ImageDecoderConstructor as new (options: {
-		data: ArrayBuffer;
-		type: string;
-	}) => {
-		close?: () => void;
-		decode: (options: { frameIndex: number }) => Promise<{ image: unknown }>;
-		tracks: {
-			ready: Promise<void>;
-			selectedTrack: {
-				frameCount: number;
+	const decoder = new (
+		ImageDecoderConstructor as new (options: {
+			data: ArrayBuffer;
+			type: string;
+		}) => {
+			close?: () => void;
+			decode: (options: { frameIndex: number }) => Promise<{ image: unknown }>;
+			tracks: {
+				ready: Promise<void>;
+				selectedTrack: {
+					frameCount: number;
+				};
 			};
-		};
-	})({
+		}
+	)({
 		data: buffer,
 		type: "image/gif",
 	});

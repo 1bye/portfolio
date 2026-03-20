@@ -1,4 +1,4 @@
-import { animate, createTimeline } from "animejs";
+import { animate, createTimeline, splitText, stagger } from "animejs";
 import { useEffect, useRef } from "react";
 
 export function AnimatedLogo() {
@@ -30,6 +30,18 @@ export function AnimatedLogo() {
 			duration: 2000,
 		});
 
+		const { chars } = splitText(textRef.current, { words: false, chars: true });
+
+		const textAnimate = animate(chars, {
+			keyframes: {
+				"0%": { translateY: 10, opacity: 0 },
+				"100%": { translateY: 0, opacity: 1 },
+			},
+			ease: "inOutExpo",
+			duration: 2000,
+			delay: stagger(50),
+		});
+
 		const containerAnimate2 = animate(containerRef.current, {
 			keyframes: {
 				"0%": { top: "50%", left: "50%" },
@@ -48,7 +60,7 @@ export function AnimatedLogo() {
 			duration: 2000,
 		});
 
-		const textAnimate = animate(textRef.current, {
+		const textAnimate2 = animate(textRef.current, {
 			keyframes: {
 				"0%": { fontSize: 48 },
 				"100%": { fontSize: 16 },
@@ -60,9 +72,10 @@ export function AnimatedLogo() {
 		tl.label("Start")
 			.sync(startAnimate, 0)
 			.sync(containerAnimate, 0)
+			// .sync(textAnimate, 100)
 			.sync(containerAnimate2, 1400)
 			.sync(startAnimate2, 2400)
-			.sync(textAnimate, 2400);
+			.sync(textAnimate2, 2400);
 	}, []);
 
 	return (

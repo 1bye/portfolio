@@ -8,7 +8,7 @@ import {
 import { Slider } from "@portfolio/ui/components/slider";
 
 import { createFileRoute } from "@tanstack/react-router";
-import { GIFEncoder, quantize, applyPalette } from "gifenc";
+import { applyPalette, GIFEncoder, quantize } from "gifenc";
 import { Download, Loader2, Upload, X } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
@@ -184,7 +184,7 @@ function DitherCraft() {
 			ditherCanvas.height = gifH;
 			const ditherCtx = ditherCanvas.getContext("2d");
 
-			if (!(tempCtx && ditherCtx))  {
+			if (!(tempCtx && ditherCtx)) {
 				return;
 			}
 

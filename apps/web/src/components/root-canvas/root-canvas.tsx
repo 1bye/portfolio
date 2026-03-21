@@ -1,14 +1,52 @@
 import { Image } from "@react-three/drei";
-import { useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer } from "@react-three/postprocessing";
+import { useLocation } from "@tanstack/react-router";
 import { Fluid } from "@whatisjery/react-fluid-distortion";
-import { useMemo } from "react";
+import { animate } from "animejs";
+import { useEffect, useMemo, useRef } from "react";
+import type { Group, Mesh } from "three";
 import { OrderedDither } from "@/lib/r3f/effects/ordered-dither";
 import { Canvas } from "@/lib/r3f/fiber";
 import { FlameParticles } from "@/lib/r3f/particles/flame";
 import { useTheme } from "../theme";
 
+interface ShapeTransform {
+	position: [number, number, number];
+	scale: number;
+}
+
+const ROUTE_SHAPES: Record<string, ShapeTransform[]> = {
+	"/": [
+		{ position: [-3, 2, -2], scale: 0.6 },
+		{ position: [3.5, -1, -3], scale: 0.5 },
+		{ position: [2, 2.5, -4], scale: 0.45 },
+		{ position: [-2.5, -2, -2.5], scale: 0.4 },
+	],
+	"/projects": [
+		{ position: [-4.5, 0.5, -1.5], scale: 0.5 },
+		{ position: [1, -2.5, -2], scale: 0.65 },
+		{ position: [4, 1, -3], scale: 0.55 },
+		{ position: [-1, 3, -4], scale: 0.35 },
+	],
+	"/crafts": [
+		{ position: [4, 1.5, -2], scale: 0.55 },
+		{ position: [-3, -2, -4], scale: 0.45 },
+		{ position: [-1.5, 3, -2.5], scale: 0.5 },
+		{ position: [2.5, -2, -1.5], scale: 0.5 },
+	],
+};
+
+const TRANSITION_DURATION = 1200;
+
+function getShapeConfig(route: string): ShapeTransform[] {
+	return ROUTE_SHAPES[route] ?? ROUTE_SHAPES["/"];
+}
+
 export function RootCanvas() {
+	const pathname = useLocation({
+		select: (location) => location.pathname,
+	});
 	const { theme } = useTheme();
 	const eventSource = useMemo(() => document.body, []);
 	const bgColor = theme === "dark" ? "#fff" : "#000";
@@ -17,14 +55,15 @@ export function RootCanvas() {
 		<div className="fixed top-0 left-0 h-screen w-screen">
 			<Canvas camera={{ position: [0, 0, 5] }} eventSource={eventSource}>
 				{/*<color args={[bgColor]} attach="background" />*/}
-				<Scene />
+				<Scene route={pathname} />
 			</Canvas>
 		</div>
 	);
 }
 
-export function Scene() {
+export function Scene({ route }: { route: string }) {
 	const { theme } = useTheme();
+	const config = getShapeConfig(route);
 	// const texture = useMemo(
 	// 	() => new TextureLoader().load("./portfolio-avatar-01.png"),
 	// 	[]
@@ -38,6 +77,8 @@ export function Scene() {
 			{/*Scenes*/}
 			{/*<HeaderScene />*/}
 			<ProfileScene />
+
+			<RouteShapes config={config} />
 
 			<FlameParticles
 				color="#ff0000"
@@ -71,6 +112,98 @@ export function Scene() {
 				{/*<SixBitRgbDither ditherScale={2} />*/}
 			</EffectComposer>
 		</>
+	);
+}
+
+function RouteShapes({ config }: { config: ShapeTransform[] }) {
+	return (
+		<>
+			<AnimatedShape config={config[0]} rotationSpeed={[0.15, 0.1, 0.05]}>
+				<torusKnotGeometry args={[0.5, 0.15, 128, 32]} />
+			</AnimatedShape>
+			<AnimatedShape config={config[1]} rotationSpeed={[0.1, 0.2, 0.08]}>
+				<boxGeometry args={[1, 1, 1]} />
+			</AnimatedShape>
+			<AnimatedShape config={config[2]} rotationSpeed={[0.08, 0.12, 0.18]}>
+				<icosahedronGeometry args={[0.5, 0]} />
+			</AnimatedShape>
+			<AnimatedShape config={config[3]} rotationSpeed={[0.12, 0.08, 0.15]}>
+				<octahedronGeometry args={[0.5, 0]} />
+			</AnimatedShape>
+		</>
+	);
+}
+
+function AnimatedShape({
+	config,
+	children,
+	rotationSpeed = [0.1, 0.1, 0.1],
+}: {
+	config: ShapeTransform;
+	children: React.ReactNode;
+	rotationSpeed?: [number, number, number];
+}) {
+	const groupRef = useRef<Group>(null);
+	const meshRef = useRef<Mesh>(null);
+	const isFirst = useRef(true);
+
+	useEffect(() => {
+		if (!groupRef.current) {
+			return;
+		}
+
+		if (isFirst.current) {
+			isFirst.current = false;
+			groupRef.current.position.set(...config.position);
+			const s = config.scale;
+			groupRef.current.scale.set(s, s, s);
+			return;
+		}
+
+		const posAnim = animate(groupRef.current.position, {
+			x: config.position[0],
+			y: config.position[1],
+			z: config.position[2],
+			ease: "inOutExpo",
+			duration: TRANSITION_DURATION,
+		});
+
+		const s = config.scale;
+		const scaleAnim = animate(groupRef.current.scale, {
+			x: s,
+			y: s,
+			z: s,
+			ease: "inOutExpo",
+			duration: TRANSITION_DURATION,
+		});
+
+		return () => {
+			posAnim.pause();
+			scaleAnim.pause();
+		};
+	}, [config]);
+
+	useFrame((_, delta) => {
+		if (!meshRef.current) {
+			return;
+		}
+		meshRef.current.rotation.x += delta * rotationSpeed[0];
+		meshRef.current.rotation.y += delta * rotationSpeed[1];
+		meshRef.current.rotation.z += delta * rotationSpeed[2];
+	});
+
+	return (
+		<group ref={groupRef}>
+			<mesh ref={meshRef}>
+				{children}
+				<meshBasicMaterial
+					color="#e8ddd0"
+					opacity={0.6}
+					transparent
+					wireframe
+				/>
+			</mesh>
+		</group>
 	);
 }
 

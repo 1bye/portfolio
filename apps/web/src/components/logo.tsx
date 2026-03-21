@@ -84,13 +84,23 @@ export function AnimatedLogo() {
 			duration: 2000,
 		});
 
+		const containerAnimate3 = animate(containerRef.current, {
+			keyframes: {
+				"0%": { opacity: 1 },
+				"100%": { opacity: 0 },
+			},
+			ease: "inOutExpo",
+			duration: 600,
+		});
+
 		tl.label("Start")
 			.sync(startAnimate, 0)
 			.sync(containerAnimate, 0)
 			// .sync(textAnimate, 100)
 			.sync(containerAnimate2, 1400)
 			.sync(startAnimate2, 2400)
-			.sync(textAnimate2, 2400);
+			.sync(textAnimate2, 2400)
+			.sync(containerAnimate3, 4600);
 
 		tl.play();
 

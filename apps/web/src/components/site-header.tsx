@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { RevealText } from "./reveal/reveal-text";
 import { useRootCanvas } from "./root-canvas/provider";
 
-export default function Header() {
+export default function Header({ title }: { title?: string } = {}) {
 	const { registerTarget, unregisterTarget } = useRootCanvas();
 
 	// useEffect(() => {
@@ -12,7 +12,7 @@ export default function Header() {
 	// }, [registerTarget, unregisterTarget]);
 
 	return (
-		<header className="flex w-full flex-row items-center justify-between py-0.5">
+		<header className="relative flex w-full flex-row items-center justify-between py-0.5">
 			<div className="flex flex-row items-center gap-3">
 				{/*<BlockSeparator
 					className="h-8 border-border border-r before:top-0 before:h-8"
@@ -26,6 +26,14 @@ export default function Header() {
 				</div>
 			</div>
 
+			{title && (
+				<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+					<RevealText className="font-mono text-muted-foreground text-xs">
+						{title}
+					</RevealText>
+				</div>
+			)}
+
 			<div className="flex flex-row items-center gap-3">
 				<div className="flex flex-row items-center gap-2">
 					<Link className="flex" to="/">
@@ -38,7 +46,7 @@ export default function Header() {
 							Projects
 						</RevealText>
 					</Link>
-					<Link className="flex" to="/crafts">
+					<Link className="flex" to="/crafts/list">
 						<RevealText className="text-sm" split="chars">
 							Crafts
 						</RevealText>

@@ -3,7 +3,7 @@ import { RevealProvider } from "@/components/reveal/provider";
 import { RevealText } from "@/components/reveal/reveal-text";
 import SiteHeader from "@/components/site-header";
 
-export const Route = createFileRoute("/crafts")({
+export const Route = createFileRoute("/crafts/list")({
 	component: CraftsComponent,
 });
 
@@ -56,7 +56,7 @@ function CraftItem({ title, description, to, category }: Craft) {
 				<RevealText className="group-hover:underline">{title}</RevealText>
 				{category && (
 					<RevealText className="mt-1 flex whitespace-nowrap font-mono text-muted-foreground/50 text-xs italic">
-						{`# ${category}`}
+						{"# ${category}"}
 					</RevealText>
 				)}
 			</div>

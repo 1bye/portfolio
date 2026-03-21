@@ -9,8 +9,10 @@ import { Slider } from "@portfolio/ui/components/slider";
 
 import { createFileRoute } from "@tanstack/react-router";
 import { applyPalette, GIFEncoder, quantize } from "gifenc";
-import { Download, Loader2, Upload, X } from "lucide-react";
+import { Download, Loader2, Upload } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
+import { RevealProvider } from "@/components/reveal/provider";
+import SiteHeader from "@/components/site-header";
 
 export const Route = createFileRoute("/crafts/dither")({
 	component: DitherCraft,
@@ -99,16 +101,6 @@ function DitherCraft() {
 
 	const handleDragOver = useCallback((e: React.DragEvent) => {
 		e.preventDefault();
-	}, []);
-
-	const handleClear = useCallback(() => {
-		setSrc(null);
-		setFileName(null);
-		setImageDimensions(null);
-		setIsGif(false);
-		if (fileInputRef.current) {
-			fileInputRef.current.value = "";
-		}
 	}, []);
 
 	const buildDitherConfig = useCallback((): DitherRenderConfig => {
@@ -244,230 +236,204 @@ function DitherCraft() {
 	}, [isGif, handleExportGif, handleExportPng]);
 
 	return (
-		<div className="mx-auto w-full max-w-5xl py-8">
-			<header className="mb-6 px-2">
-				<h1 className="font-semibold text-2xl tracking-tight">
-					Ordered Dither
-				</h1>
-				<p className="mt-1 text-muted-foreground text-sm">
-					Upload an image or GIF and apply ordered dithering with real-time
-					configuration.
-				</p>
-			</header>
+		<RevealProvider delay={0}>
+			<div className="relative z-10 mx-auto w-full max-w-5xl *:[[id]]:scroll-mt-22">
+				<SiteHeader title="ordered-dither.tsx" />
+				<div className="w-full pt-8" />
 
-			<div className="flex flex-col gap-6 lg:flex-row">
-				{/* Preview area */}
-				<div className="flex min-w-0 flex-1 flex-col gap-4">
-					{src ? (
-						<div className="relative overflow-hidden rounded-xl border border-border bg-muted">
-							<div className="flex items-center justify-between border-border border-b px-4 py-2">
-								<span className="truncate font-mono text-muted-foreground text-xs">
-									{fileName}
-									{imageDimensions
-										? ` — ${imageDimensions.width}×${imageDimensions.height}`
-										: ""}
-								</span>
-								<div className="flex items-center gap-1">
+				<div className="flex flex-col gap-6 lg:flex-row">
+					{/* Preview area */}
+					<div className="flex min-w-0 flex-1 flex-col gap-4">
+						{src ? (
+							<div className="relative overflow-hidden rounded-xl border border-border bg-muted">
+								<div
+									className="flex items-center justify-center p-4"
+									style={{ backgroundColor }}
+								>
+									<div
+										className="relative"
+										style={{
+											width: "100%",
+											maxWidth: imageDimensions
+												? `${imageDimensions.width}px`
+												: "100%",
+											aspectRatio: imageDimensions
+												? `${imageDimensions.width} / ${imageDimensions.height}`
+												: "16 / 9",
+										}}
+									>
+										<DitherShader
+											backgroundColor={backgroundColor}
+											brightness={brightness / 100}
+											canvasRef={canvasRef}
+											className="h-full w-full"
+											colorMode={colorMode}
+											contrast={contrast / 100}
+											ditherMode={ditherMode}
+											forceGif={isGif}
+											gifFps={isGif ? 10 : undefined}
+											gridSize={gridSize}
+											invert={invert}
+											objectFit="contain"
+											pixelRatio={pixelRatio / 100}
+											playGifs={isGif}
+											primaryColor={primaryColor}
+											secondaryColor={secondaryColor}
+											src={src}
+											threshold={threshold / 100}
+										/>
+									</div>
+								</div>
+							</div>
+						) : (
+							<button
+								className="flex min-h-80 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-border border-dashed bg-muted/50 transition-colors hover:bg-muted"
+								onClick={() => fileInputRef.current?.click()}
+								onDragOver={handleDragOver}
+								onDrop={handleDrop}
+								type="button"
+							>
+								<div className="flex size-12 items-center justify-center rounded-full bg-accent">
+									<Upload className="size-5 text-muted-foreground" />
+								</div>
+								<div className="text-center">
+									<p className="font-medium text-sm">
+										Drop an image or GIF here
+									</p>
+									<p className="mt-0.5 text-muted-foreground text-xs">
+										or click to browse
+									</p>
+								</div>
+							</button>
+						)}
+
+						<input
+							accept="image/*"
+							className="hidden"
+							onChange={handleFileChange}
+							ref={fileInputRef}
+							type="file"
+						/>
+					</div>
+
+					{/* Controls panel */}
+					<div className="w-full shrink-0 lg:w-80">
+						<div className="flex flex-col gap-4">
+							<ControlSection title="Pattern">
+								<SegmentedControl
+									onChange={(v) => setDitherMode(v as DitheringMode)}
+									options={DITHER_MODES}
+									value={ditherMode}
+								/>
+								<Slider
+									label="Grid Size"
+									max={16}
+									min={1}
+									onChange={setGridSize}
+									value={gridSize}
+								/>
+								<Slider
+									label="Threshold"
+									max={100}
+									min={0}
+									onChange={setThreshold}
+									value={threshold}
+								/>
+								<Slider
+									label="Pixel Ratio"
+									max={400}
+									min={50}
+									onChange={setPixelRatio}
+									step={10}
+									value={pixelRatio}
+								/>
+							</ControlSection>
+
+							<div className="h-px bg-border" />
+
+							<ControlSection title="Color">
+								<SegmentedControl
+									onChange={(v) => setColorMode(v as ColorMode)}
+									options={COLOR_MODES}
+									value={colorMode}
+								/>
+								{colorMode === "duotone" && (
+									<div className="flex gap-2">
+										<ColorInput
+											label="Primary"
+											onChange={setPrimaryColor}
+											value={primaryColor}
+										/>
+										<ColorInput
+											label="Secondary"
+											onChange={setSecondaryColor}
+											value={secondaryColor}
+										/>
+									</div>
+								)}
+								<ToggleRow
+									checked={invert}
+									label="Invert"
+									onChange={setInvert}
+								/>
+							</ControlSection>
+
+							<div className="h-px bg-border" />
+
+							<ControlSection title="Adjustments">
+								<Slider
+									label="Brightness"
+									max={100}
+									min={-100}
+									onChange={setBrightness}
+									value={brightness}
+								/>
+								<Slider
+									label="Contrast"
+									max={200}
+									min={0}
+									onChange={setContrast}
+									value={contrast}
+								/>
+							</ControlSection>
+
+							<div className="h-px bg-border" />
+
+							<ControlSection title="Background">
+								<ColorInput
+									label="Color"
+									onChange={setBackgroundColor}
+									value={backgroundColor}
+								/>
+							</ControlSection>
+
+							{src && (
+								<>
+									<div className="h-px bg-border" />
 									<button
-										className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+										className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-black/[0.06] font-medium text-[13px] text-foreground transition-colors hover:bg-black/[0.1] disabled:opacity-50"
 										disabled={exporting}
 										onClick={handleExport}
-										title={isGif ? "Export GIF" : "Export PNG"}
 										type="button"
 									>
-										<Download className="size-3.5" />
+										{exporting ? (
+											<Loader2 className="size-4 animate-spin" />
+										) : (
+											<Download className="size-4" />
+										)}
+										{exporting
+											? "Encoding GIF…"
+											: isGif
+												? "Export GIF"
+												: "Export PNG"}
 									</button>
-									<button
-										className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-										onClick={handleClear}
-										title="Remove"
-										type="button"
-									>
-										<X className="size-3.5" />
-									</button>
-								</div>
-							</div>
-							<div
-								className="flex items-center justify-center p-4"
-								style={{ backgroundColor }}
-							>
-								<div
-									className="relative"
-									style={{
-										width: "100%",
-										maxWidth: imageDimensions
-											? `${imageDimensions.width}px`
-											: "100%",
-										aspectRatio: imageDimensions
-											? `${imageDimensions.width} / ${imageDimensions.height}`
-											: "16 / 9",
-									}}
-								>
-									<DitherShader
-										backgroundColor={backgroundColor}
-										brightness={brightness / 100}
-										canvasRef={canvasRef}
-										className="h-full w-full"
-										colorMode={colorMode}
-										contrast={contrast / 100}
-										ditherMode={ditherMode}
-										forceGif={isGif}
-										gifFps={isGif ? 10 : undefined}
-										gridSize={gridSize}
-										invert={invert}
-										objectFit="contain"
-										pixelRatio={pixelRatio / 100}
-										playGifs={isGif}
-										primaryColor={primaryColor}
-										secondaryColor={secondaryColor}
-										src={src}
-										threshold={threshold / 100}
-									/>
-								</div>
-							</div>
-						</div>
-					) : (
-						<button
-							className="flex min-h-80 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-border border-dashed bg-muted/50 transition-colors hover:bg-muted"
-							onClick={() => fileInputRef.current?.click()}
-							onDragOver={handleDragOver}
-							onDrop={handleDrop}
-							type="button"
-						>
-							<div className="flex size-12 items-center justify-center rounded-full bg-accent">
-								<Upload className="size-5 text-muted-foreground" />
-							</div>
-							<div className="text-center">
-								<p className="font-medium text-sm">Drop an image or GIF here</p>
-								<p className="mt-0.5 text-muted-foreground text-xs">
-									or click to browse
-								</p>
-							</div>
-						</button>
-					)}
-
-					<input
-						accept="image/*"
-						className="hidden"
-						onChange={handleFileChange}
-						ref={fileInputRef}
-						type="file"
-					/>
-				</div>
-
-				{/* Controls panel */}
-				<div className="w-full shrink-0 lg:w-80">
-					<div className="flex flex-col gap-2 rounded-xl bg-[#1a1a1a] p-3">
-						<ControlSection title="Pattern">
-							<SegmentedControl
-								onChange={(v) => setDitherMode(v as DitheringMode)}
-								options={DITHER_MODES}
-								value={ditherMode}
-							/>
-							<Slider
-								label="Grid Size"
-								max={16}
-								min={1}
-								onChange={setGridSize}
-								value={gridSize}
-							/>
-							<Slider
-								label="Threshold"
-								max={100}
-								min={0}
-								onChange={setThreshold}
-								value={threshold}
-							/>
-							<Slider
-								label="Pixel Ratio"
-								max={400}
-								min={50}
-								onChange={setPixelRatio}
-								step={10}
-								value={pixelRatio}
-							/>
-						</ControlSection>
-
-						<div className="h-px bg-white/10" />
-
-						<ControlSection title="Color">
-							<SegmentedControl
-								onChange={(v) => setColorMode(v as ColorMode)}
-								options={COLOR_MODES}
-								value={colorMode}
-							/>
-							{colorMode === "duotone" && (
-								<div className="flex gap-2">
-									<ColorInput
-										label="Primary"
-										onChange={setPrimaryColor}
-										value={primaryColor}
-									/>
-									<ColorInput
-										label="Secondary"
-										onChange={setSecondaryColor}
-										value={secondaryColor}
-									/>
-								</div>
+								</>
 							)}
-							<ToggleRow checked={invert} label="Invert" onChange={setInvert} />
-						</ControlSection>
-
-						<div className="h-px bg-white/10" />
-
-						<ControlSection title="Adjustments">
-							<Slider
-								label="Brightness"
-								max={100}
-								min={-100}
-								onChange={setBrightness}
-								value={brightness}
-							/>
-							<Slider
-								label="Contrast"
-								max={200}
-								min={0}
-								onChange={setContrast}
-								value={contrast}
-							/>
-						</ControlSection>
-
-						<div className="h-px bg-white/10" />
-
-						<ControlSection title="Background">
-							<ColorInput
-								label="Color"
-								onChange={setBackgroundColor}
-								value={backgroundColor}
-							/>
-						</ControlSection>
-
-						{src && (
-							<>
-								<div className="h-px bg-white/10" />
-								<button
-									className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-white/10 font-medium text-[13px] text-white/90 transition-colors hover:bg-white/15 disabled:opacity-50"
-									disabled={exporting}
-									onClick={handleExport}
-									type="button"
-								>
-									{exporting ? (
-										<Loader2 className="size-4 animate-spin" />
-									) : (
-										<Download className="size-4" />
-									)}
-									{exporting
-										? "Encoding GIF…"
-										: isGif
-											? "Export GIF"
-											: "Export PNG"}
-								</button>
-							</>
-						)}
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		</RevealProvider>
 	);
 }
 
@@ -480,7 +446,7 @@ function ControlSection({
 }) {
 	return (
 		<div className="flex flex-col gap-2">
-			<span className="px-1 font-mono text-[11px] text-white/40 uppercase tracking-wider">
+			<span className="px-1 font-mono text-[11px] text-muted-foreground uppercase tracking-wider">
 				{title}
 			</span>
 			{children}
@@ -498,13 +464,13 @@ function SegmentedControl<T extends string>({
 	onChange: (value: T) => void;
 }) {
 	return (
-		<div className="flex gap-1 rounded-xl bg-white/5 p-1">
+		<div className="flex gap-1 rounded-xl bg-black/[0.04] p-1">
 			{options.map((option) => (
 				<button
 					className={`flex-1 rounded-lg px-2 py-1.5 font-medium text-[12px] transition-colors ${
 						value === option.value
-							? "bg-white/15 text-white/90"
-							: "text-white/40 hover:text-white/60"
+							? "bg-black/[0.08] text-black/70"
+							: "text-black/40 hover:text-black/60"
 					}`}
 					key={option.value}
 					onClick={() => onChange(option.value)}
@@ -527,16 +493,16 @@ function ColorInput({
 	onChange: (value: string) => void;
 }) {
 	return (
-		<label className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl bg-white/5 px-3 py-2">
+		<label className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl bg-black/[0.04] px-3 py-2">
 			<input
-				className="size-5 cursor-pointer appearance-none rounded-md border border-white/20"
+				className="size-5 cursor-pointer appearance-none rounded-md border border-black/15"
 				onChange={(e) => onChange(e.target.value)}
 				style={{ backgroundColor: value }}
 				type="color"
 				value={value}
 			/>
-			<span className="font-medium text-[12px] text-white/60">{label}</span>
-			<span className="ml-auto font-mono text-[11px] text-white/40">
+			<span className="font-medium text-[12px] text-black/60">{label}</span>
+			<span className="ml-auto font-mono text-[11px] text-black/40">
 				{value}
 			</span>
 		</label>
@@ -554,18 +520,18 @@ function ToggleRow({
 }) {
 	return (
 		<button
-			className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5"
+			className="flex items-center justify-between rounded-xl bg-black/[0.04] px-4 py-2.5"
 			onClick={() => onChange(!checked)}
 			type="button"
 		>
-			<span className="font-medium text-[13px] text-white/80">{label}</span>
+			<span className="font-medium text-[13px] text-black/70">{label}</span>
 			<div
 				className={`flex h-5 w-9 items-center rounded-full px-0.5 transition-colors ${
-					checked ? "bg-white/30" : "bg-white/10"
+					checked ? "bg-black/30" : "bg-black/15"
 				}`}
 			>
 				<div
-					className={`size-4 rounded-full bg-white/90 transition-transform ${
+					className={`size-4 rounded-full bg-black/60 transition-transform ${
 						checked ? "translate-x-4" : "translate-x-0"
 					}`}
 				/>

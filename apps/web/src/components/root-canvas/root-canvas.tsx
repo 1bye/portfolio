@@ -29,7 +29,7 @@ const ROUTE_SHAPES: Record<string, ShapeTransform[]> = {
 		{ position: [4, 1, -3], scale: 0.55 },
 		{ position: [-1, 3, -4], scale: 0.35 },
 	],
-	"/crafts": [
+	"/crafts/list": [
 		{ position: [4, 1.5, -2], scale: 0.55 },
 		{ position: [-3, -2, -4], scale: 0.45 },
 		{ position: [-1.5, 3, -2.5], scale: 0.5 },
@@ -78,6 +78,7 @@ export function Scene({ route }: { route: string }) {
 			{/*<HeaderScene />*/}
 			<ProfileScene />
 
+			<CornerShapes />
 			<RouteShapes config={config} />
 
 			<FlameParticles
@@ -207,8 +208,82 @@ function AnimatedShape({
 	);
 }
 
+function CornerShapes() {
+	const topLeft = useRef<Mesh>(null);
+	const topRight = useRef<Mesh>(null);
+	const bottomLeft = useRef<Mesh>(null);
+	const bottomRight = useRef<Mesh>(null);
+
+	useFrame((_, delta) => {
+		if (topLeft.current) {
+			topLeft.current.rotation.x += delta * 0.04;
+			topLeft.current.rotation.y += delta * 0.06;
+		}
+		if (topRight.current) {
+			topRight.current.rotation.y += delta * 0.05;
+			topRight.current.rotation.z += delta * 0.03;
+		}
+		if (bottomLeft.current) {
+			bottomLeft.current.rotation.x += delta * 0.03;
+			bottomLeft.current.rotation.z += delta * 0.05;
+		}
+		if (bottomRight.current) {
+			bottomRight.current.rotation.x += delta * 0.05;
+			bottomRight.current.rotation.y += delta * 0.04;
+		}
+	});
+
+	return (
+		<>
+			<mesh position={[-6, 4, -6]} ref={topLeft}>
+				<icosahedronGeometry args={[3, 1]} />
+				<meshBasicMaterial
+					color="#d5cac0"
+					opacity={0.15}
+					transparent
+					wireframe
+				/>
+			</mesh>
+			<mesh position={[6, 3.5, -7]} ref={topRight}>
+				<torusGeometry args={[2.5, 0.8, 16, 32]} />
+				<meshBasicMaterial
+					color="#d5cac0"
+					opacity={0.12}
+					transparent
+					wireframe
+				/>
+			</mesh>
+			<mesh position={[-5.5, -4, -5]} ref={bottomLeft}>
+				<dodecahedronGeometry args={[2.8, 0]} />
+				<meshBasicMaterial
+					color="#d5cac0"
+					opacity={0.13}
+					transparent
+					wireframe
+				/>
+			</mesh>
+			<mesh position={[6.5, -3.5, -6]} ref={bottomRight}>
+				<octahedronGeometry args={[3, 0]} />
+				<meshBasicMaterial
+					color="#d5cac0"
+					opacity={0.14}
+					transparent
+					wireframe
+				/>
+			</mesh>
+		</>
+	);
+}
+
 function ProfileScene() {
-	return <Image position={[-4, 2.5, 0]} url="./portfolio-avatar-01.png" />;
+	console.log(location);
+
+	return (
+		<Image
+			position={[-4, 2.5, 0]}
+			url={location.origin + "/portfolio-avatar-01.png"}
+		/>
+	);
 }
 
 function HeaderScene() {

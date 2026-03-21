@@ -11,9 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as LogoRouteImport } from './routes/logo'
-import { Route as CraftsRouteImport } from './routes/crafts'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CraftsListRouteImport } from './routes/crafts/list'
 import { Route as CraftsDitherRouteImport } from './routes/crafts/dither'
 
 const ProjectsRoute = ProjectsRouteImport.update({
@@ -26,11 +26,6 @@ const LogoRoute = LogoRouteImport.update({
   path: '/logo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CraftsRoute = CraftsRouteImport.update({
-  id: '/crafts',
-  path: '/crafts',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
@@ -41,64 +36,70 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CraftsListRoute = CraftsListRouteImport.update({
+  id: '/crafts/list',
+  path: '/crafts/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CraftsDitherRoute = CraftsDitherRouteImport.update({
-  id: '/dither',
-  path: '/dither',
-  getParentRoute: () => CraftsRoute,
+  id: '/crafts/dither',
+  path: '/crafts/dither',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
-  '/crafts': typeof CraftsRouteWithChildren
   '/logo': typeof LogoRoute
   '/projects': typeof ProjectsRoute
   '/crafts/dither': typeof CraftsDitherRoute
+  '/crafts/list': typeof CraftsListRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
-  '/crafts': typeof CraftsRouteWithChildren
   '/logo': typeof LogoRoute
   '/projects': typeof ProjectsRoute
   '/crafts/dither': typeof CraftsDitherRoute
+  '/crafts/list': typeof CraftsListRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
-  '/crafts': typeof CraftsRouteWithChildren
   '/logo': typeof LogoRoute
   '/projects': typeof ProjectsRoute
   '/crafts/dither': typeof CraftsDitherRoute
+  '/crafts/list': typeof CraftsListRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/blog'
-    | '/crafts'
     | '/logo'
     | '/projects'
     | '/crafts/dither'
+    | '/crafts/list'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/blog' | '/crafts' | '/logo' | '/projects' | '/crafts/dither'
+  to: '/' | '/blog' | '/logo' | '/projects' | '/crafts/dither' | '/crafts/list'
   id:
     | '__root__'
     | '/'
     | '/blog'
-    | '/crafts'
     | '/logo'
     | '/projects'
     | '/crafts/dither'
+    | '/crafts/list'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BlogRoute: typeof BlogRoute
-  CraftsRoute: typeof CraftsRouteWithChildren
   LogoRoute: typeof LogoRoute
   ProjectsRoute: typeof ProjectsRoute
+  CraftsDitherRoute: typeof CraftsDitherRoute
+  CraftsListRoute: typeof CraftsListRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -117,13 +118,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/crafts': {
-      id: '/crafts'
-      path: '/crafts'
-      fullPath: '/crafts'
-      preLoaderRoute: typeof CraftsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/blog': {
       id: '/blog'
       path: '/blog'
@@ -138,33 +132,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crafts/list': {
+      id: '/crafts/list'
+      path: '/crafts/list'
+      fullPath: '/crafts/list'
+      preLoaderRoute: typeof CraftsListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crafts/dither': {
       id: '/crafts/dither'
-      path: '/dither'
+      path: '/crafts/dither'
       fullPath: '/crafts/dither'
       preLoaderRoute: typeof CraftsDitherRouteImport
-      parentRoute: typeof CraftsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface CraftsRouteChildren {
-  CraftsDitherRoute: typeof CraftsDitherRoute
-}
-
-const CraftsRouteChildren: CraftsRouteChildren = {
-  CraftsDitherRoute: CraftsDitherRoute,
-}
-
-const CraftsRouteWithChildren =
-  CraftsRoute._addFileChildren(CraftsRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BlogRoute: BlogRoute,
-  CraftsRoute: CraftsRouteWithChildren,
   LogoRoute: LogoRoute,
   ProjectsRoute: ProjectsRoute,
+  CraftsDitherRoute: CraftsDitherRoute,
+  CraftsListRoute: CraftsListRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

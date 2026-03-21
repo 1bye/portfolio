@@ -1,16 +1,31 @@
 import { animate, createTimeline, splitText, stagger } from "animejs";
 import { useEffect, useRef } from "react";
 
+export let hasPlayedThisSession = false;
+
 export function AnimatedLogo() {
 	const startRef = useRef<HTMLDivElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const textRef = useRef<HTMLDivElement>(null);
-	const tl = createTimeline({ defaults: { duration: 750 }, autoplay: true });
-
 	useEffect(() => {
 		if (!(startRef.current && containerRef.current && textRef.current)) {
 			return;
 		}
+
+		if (hasPlayedThisSession) {
+			startRef.current.style.width = "0px";
+			startRef.current.style.left = "-8px";
+			startRef.current.style.fontSize = "16px";
+			containerRef.current.style.transform = "rotateZ(0deg)";
+			containerRef.current.style.top = "0.65%";
+			containerRef.current.style.left = "0.85%";
+			textRef.current.style.fontSize = "16px";
+			return;
+		}
+
+		hasPlayedThisSession = true;
+
+		const tl = createTimeline({ defaults: { duration: 750 }, autoplay: false });
 
 		const startAnimate = animate(startRef.current, {
 			keyframes: {
@@ -76,6 +91,12 @@ export function AnimatedLogo() {
 			.sync(containerAnimate2, 1400)
 			.sync(startAnimate2, 2400)
 			.sync(textAnimate2, 2400);
+
+		tl.play();
+
+		return () => {
+			tl.pause();
+		};
 	}, []);
 
 	return (

@@ -17,7 +17,7 @@ export function RevealText({
 	split = "words",
 	fadeDuration = 600,
 }: RevealTextProps) {
-	const { phase, duration } = useReveal();
+	const { phase, duration, registerMaxDelay } = useReveal();
 	const containerRef = useRef<HTMLSpanElement>(null);
 	const delaysRef = useRef<number[]>([]);
 	const measuredRef = useRef(false);
@@ -58,10 +58,14 @@ export function RevealText({
 			return diagonal * duration;
 		});
 
-		measuredRef.current = true;
-	}, [elements, duration]);
+		const maxDelay = Math.max(...delaysRef.current, 0);
+		registerMaxDelay(maxDelay);
 
-	const isVisible = phase !== "waiting";
+		measuredRef.current = true;
+	}, [elements, duration, registerMaxDelay]);
+
+	const isVisible = phase === "revealing" || phase === "revealed";
+	const isLeaving = phase === "leaving";
 
 	return (
 		<span
@@ -77,10 +81,12 @@ export function RevealText({
 					style={{
 						display: split === "words" ? "inline-block" : "inline",
 						marginRight: split === "words" ? "0.25em" : undefined,
-						opacity: isVisible ? 1 : 0,
-						transition: isVisible
+						opacity: isLeaving ? 0 : isVisible ? 1 : 0,
+						transition: isLeaving
 							? `opacity ${fadeDuration}ms cubic-bezier(0.16,1,0.3,1) ${delaysRef.current[i] ?? 0}ms`
-							: "none",
+							: isVisible
+								? `opacity ${fadeDuration}ms cubic-bezier(0.16,1,0.3,1) ${delaysRef.current[i] ?? 0}ms`
+								: "none",
 					}}
 				>
 					{el.content}

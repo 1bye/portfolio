@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { RevealLink } from "./reveal/reveal-link";
 import { RevealText } from "./reveal/reveal-text";
 import { useRootCanvas } from "./root-canvas/provider";
 
@@ -36,21 +36,21 @@ export default function Header({ title }: { title?: string } = {}) {
 
 			<div className="flex flex-row items-center gap-3">
 				<div className="flex flex-row items-center gap-2">
-					<Link className="flex" to="/">
+					<RevealLink className="flex" to="/">
 						<RevealText className="text-sm" split="chars">
 							Home
 						</RevealText>
-					</Link>
-					<Link className="flex" to="/projects">
+					</RevealLink>
+					<RevealLink className="flex" to="/projects">
 						<RevealText className="text-sm" split="chars">
 							Projects
 						</RevealText>
-					</Link>
-					<Link className="flex" to="/crafts/list">
+					</RevealLink>
+					<RevealLink className="flex" to="/crafts/dither">
 						<RevealText className="text-sm" split="chars">
 							Crafts
 						</RevealText>
-					</Link>
+					</RevealLink>
 				</div>
 				{/*<BlockSeparator
 					className="h-8 border-border border-l before:top-0 before:h-8"

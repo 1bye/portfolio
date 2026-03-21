@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { RevealLink } from "./reveal/reveal-link";
 
 const SOCIAL_LINKS = [
 	{ label: "GitHub", href: "https://github.com/1bye" },
@@ -24,13 +24,13 @@ export default function Footer() {
 							Navigate
 						</span>
 						{NAV_LINKS.map((link) => (
-							<Link
+							<RevealLink
 								className="text-muted-foreground text-sm transition-colors hover:text-foreground"
 								key={link.to}
 								to={link.to}
 							>
 								{link.label}
-							</Link>
+							</RevealLink>
 						))}
 					</div>
 					<div className="flex flex-col gap-1.5">

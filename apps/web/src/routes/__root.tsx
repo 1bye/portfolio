@@ -44,8 +44,8 @@ function RootLayout({ children }: PropsWithChildren<{}>) {
 	return (
 		<RootCanvasProvider>
 			<ThemeProvider>
-				<main className="max-w-screen overflow-x-hidden px-2">
-					{children}
+				<main className="flex min-h-screen max-w-screen flex-col overflow-x-hidden px-2">
+					<div className="flex-1">{children}</div>
 					<Footer />
 					<RootCanvas />
 				</main>

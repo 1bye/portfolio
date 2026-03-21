@@ -8,15 +8,19 @@ import {
 	useState,
 } from "react";
 
-type RevealPhase = "waiting" | "revealing" | "revealed";
+type RevealPhase = "waiting" | "revealing" | "revealed" | "leaving";
 
 interface RevealContextValue {
 	/** Duration of the sweep wave in ms */
 	duration: number;
+	/** Trigger fade-out and return a promise that resolves when done */
+	leave: () => Promise<void>;
 	/** Subscribe to normalized progress (0–1) for external sync (e.g. canvas) */
 	onProgress: (callback: (progress: number) => void) => () => void;
 	/** Current animation phase */
 	phase: RevealPhase;
+	/** Report the max stagger delay from a RevealText instance */
+	registerMaxDelay: (delay: number) => void;
 	/** Manually trigger the hide (for future page transitions) */
 	triggerHide: () => void;
 	/** Manually trigger the reveal */
@@ -41,6 +45,13 @@ export function RevealProvider({
 	const listeners = useRef<Set<(p: number) => void>>(new Set());
 	const rafId = useRef(0);
 	const startTime = useRef(0);
+	const maxDelayRef = useRef(0);
+
+	const registerMaxDelay = useCallback((delay: number) => {
+		if (delay > maxDelayRef.current) {
+			maxDelayRef.current = delay;
+		}
+	}, []);
 
 	const tick = useCallback(() => {
 		const elapsed = performance.now() - startTime.current;
@@ -66,6 +77,14 @@ export function RevealProvider({
 		setPhase("waiting");
 	}, []);
 
+	const leave = useCallback((): Promise<void> => {
+		setPhase("leaving");
+		const waitTime = maxDelayRef.current + 600 + 50;
+		return new Promise((resolve) => {
+			setTimeout(resolve, waitTime);
+		});
+	}, []);
+
 	useEffect(() => {
 		const id = setTimeout(triggerReveal, delay);
 		return () => {
@@ -83,7 +102,15 @@ export function RevealProvider({
 
 	return (
 		<RevealContext.Provider
-			value={{ phase, duration, triggerReveal, triggerHide, onProgress }}
+			value={{
+				phase,
+				duration,
+				leave,
+				onProgress,
+				registerMaxDelay,
+				triggerReveal,
+				triggerHide,
+			}}
 		>
 			{children}
 		</RevealContext.Provider>
@@ -96,9 +123,11 @@ export function useReveal(): RevealContextValue {
 		return {
 			phase: "revealed",
 			duration: 0,
+			leave: () => Promise.resolve(),
+			onProgress: () => () => {},
+			registerMaxDelay: () => {},
 			triggerReveal: () => {},
 			triggerHide: () => {},
-			onProgress: () => () => {},
 		};
 	}
 	return ctx;

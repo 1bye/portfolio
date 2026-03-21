@@ -56,7 +56,7 @@ export function ProjectItem({
 		animate(unavailableStrokeRef.current, {
 			width: "100%",
 			duration: 300,
-			delay: 100,
+			delay: 700,
 		});
 	};
 
@@ -67,6 +67,7 @@ export function ProjectItem({
 		}
 		animate(unavailableStrokeRef.current, {
 			width: "0%",
+			duration: 200,
 		});
 	};
 
@@ -88,7 +89,10 @@ export function ProjectItem({
 				<div className="flex w-full flex-row items-center gap-1">
 					<RevealBlock
 						className="overflow-hidden rounded-full"
-						onDone={() => {
+						onLeave={() => {
+							animateFrom();
+						}}
+						onStart={() => {
 							if (unavailable) {
 								animateTo();
 							} else {

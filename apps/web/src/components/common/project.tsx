@@ -1,4 +1,3 @@
-import { DitherShader } from "@portfolio/ui/components/dither-shader";
 import {
 	PhotoView,
 	PhotoViewProvider,
@@ -519,12 +518,13 @@ function ProjectItemImage({
 				height,
 			}}
 		>
-			<DitherShader
+			{/*<DitherShader
 				className="h-full w-full object-cover"
 				ditherMode="bayer"
 				gridSize={1}
 				src={src}
-			/>
+			/>*/}
+			<img alt="Img" className="h-full w-full object-cover" src={src} />
 		</div>
 	);
 }
@@ -549,7 +549,8 @@ function ProjectItemVideo({
 						height,
 					}}
 				>
-					<DitherShader
+					<img alt="Img" className="h-full w-full object-cover" src={gif} />
+					{/*<DitherShader
 						className="h-full w-full object-cover"
 						gifFps={10}
 						gridSize={1}
@@ -558,7 +559,7 @@ function ProjectItemVideo({
 							width,
 							height,
 						}}
-					/>
+					/>*/}
 				</div>
 			) : (
 				<div className="aspect-video w-full max-w-350">

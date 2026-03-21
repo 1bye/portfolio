@@ -17,19 +17,19 @@ export function ProjectsBlock() {
 			media: [
 				{
 					type: "image",
-					url: "projects/apiser/media-1.png",
+					url: "projects/apiser/media-1.webp",
 				},
 				{
 					type: "image",
-					url: "projects/apiser/media-2.png",
+					url: "projects/apiser/media-2.webp",
 				},
 				{
 					type: "image",
-					url: "projects/apiser/media-3.png",
+					url: "projects/apiser/media-3.webp",
 				},
 				{
 					type: "image",
-					url: "projects/apiser/media-4.png",
+					url: "projects/apiser/media-4.webp",
 				},
 			],
 		},
@@ -52,19 +52,19 @@ export function ProjectsBlock() {
 				},
 				{
 					type: "image",
-					url: "projects/concero/media-1.png",
+					url: "projects/concero/media-1.webp",
 				},
 				{
 					type: "image",
-					url: "projects/concero/media-2.png",
+					url: "projects/concero/media-2.webp",
 				},
 				{
 					type: "image",
-					url: "projects/concero/media-3.png",
+					url: "projects/concero/media-3.webp",
 				},
 				{
 					type: "image",
-					url: "projects/concero/media-4.png",
+					url: "projects/concero/media-4.webp",
 				},
 			],
 		},
@@ -87,7 +87,7 @@ export function ProjectsBlock() {
 				},
 				{
 					type: "image",
-					url: "projects/invoice-xpress-app/media-1.png",
+					url: "projects/invoice-xpress-app/media-1.webp",
 				},
 			],
 		},
@@ -110,7 +110,7 @@ export function ProjectsBlock() {
 				},
 				{
 					type: "image",
-					url: "projects/reset-studio-app/media-1.png",
+					url: "projects/reset-studio-app/media-1.webp",
 				},
 			],
 		},
@@ -132,23 +132,23 @@ export function ProjectsBlock() {
 				},
 				{
 					type: "image",
-					url: "projects/nouro-flow/media-1.png",
+					url: "projects/nouro-flow/media-1.webp",
 				},
 				{
 					type: "image",
-					url: "projects/nouro-flow/media-2.png",
+					url: "projects/nouro-flow/media-2.webp",
 				},
 				{
 					type: "image",
-					url: "projects/nouro-flow/media-3.png",
+					url: "projects/nouro-flow/media-3.webp",
 				},
 				{
 					type: "image",
-					url: "projects/nouro-flow/media-4.png",
+					url: "projects/nouro-flow/media-4.webp",
 				},
 				{
 					type: "image",
-					url: "projects/nouro-flow/media-5.png",
+					url: "projects/nouro-flow/media-5.webp",
 				},
 			],
 			category: "SaaS",

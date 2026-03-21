@@ -15,6 +15,8 @@ interface DitherShaderProps {
 	backgroundColor?: string;
 	/** Brightness adjustment (-1 to 1) */
 	brightness?: number;
+	/** External ref to access the canvas element */
+	canvasRef?: React.RefObject<HTMLCanvasElement | null>;
 	/** Additional CSS classes for the container (use this to set size via Tailwind) */
 	className?: string;
 	/** Color processing mode */
@@ -25,6 +27,8 @@ interface DitherShaderProps {
 	customPalette?: string[];
 	/** Type of dithering pattern */
 	ditherMode?: DitheringMode;
+	/** Force treat the source as a GIF (useful for blob URLs) */
+	forceGif?: boolean;
 	/** Cap GIF redraw rate (frames per second) */
 	gifFps?: number;
 	/** Size of the dithering grid cells */
@@ -70,7 +74,7 @@ const BAYER_MATRIX_8x8 = [
 
 const RGB_COLOR_REGEX = /rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)/i;
 
-function parseColor(color: string): [number, number, number] {
+export function parseColor(color: string): [number, number, number] {
 	if (color.startsWith("#")) {
 		const hex = color.slice(1);
 		if (hex.length === 3) {
@@ -105,9 +109,9 @@ function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, value));
 }
 
-type RGB = [number, number, number];
+export type RGB = [number, number, number];
 
-interface DitherRenderConfig {
+export interface DitherRenderConfig {
 	backgroundColor: string;
 	brightness: number;
 	colorMode: ColorMode;
@@ -366,7 +370,7 @@ function computeDitheredCellColor({
 	return maybeInvertColor(baseColor, config.invert);
 }
 
-function renderDitheredFrame({
+export function renderDitheredFrame({
 	config,
 	ctx,
 	displayHeight,
@@ -443,7 +447,7 @@ function isVideoFrame(value: unknown): value is VideoFrame {
 	return typeof VideoFrame !== "undefined" && value instanceof VideoFrame;
 }
 
-async function decodeGifWithImageDecoder(
+export async function decodeGifWithImageDecoder(
 	src: string,
 	signal: AbortSignal
 ): Promise<DecodedGif | null> {
@@ -554,12 +558,15 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 	animated = false,
 	animationSpeed = 0.02,
 	playGifs = true,
+	forceGif = false,
 	gifFps = 30,
 	style,
 	className,
+	canvasRef: externalCanvasRef,
 }) => {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const internalCanvasRef = useRef<HTMLCanvasElement>(null);
+	const canvasRef = externalCanvasRef ?? internalCanvasRef;
 	const animationRef = useRef<number | null>(null);
 	const timeRef = useRef<number>(0);
 	const imageRef = useRef<HTMLImageElement | null>(null);
@@ -669,7 +676,7 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 
 		const displayWidth = dimensions.width;
 		const displayHeight = dimensions.height;
-		const shouldPlayGif = playGifs && isGifSource(src);
+		const shouldPlayGif = playGifs && (forceGif || isGifSource(src));
 		const shouldAnimate = animated || shouldPlayGif;
 		const minGifFrameMs = 1000 / Math.max(1, gifFps);
 		const canDecodeGif = shouldPlayGif && "ImageDecoder" in globalThis;
@@ -1007,6 +1014,7 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 		animationSpeed,
 		applyDithering,
 		playGifs,
+		forceGif,
 		gifFps,
 	]);
 

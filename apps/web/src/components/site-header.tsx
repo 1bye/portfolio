@@ -38,9 +38,9 @@ export default function Header() {
 							Projects
 						</RevealText>
 					</Link>
-					<Link className="flex" to="/blog">
+					<Link className="flex" to="/crafts">
 						<RevealText className="text-sm" split="chars">
-							Blog
+							Crafts
 						</RevealText>
 					</Link>
 				</div>

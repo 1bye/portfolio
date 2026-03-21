@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as LogoRouteImport } from './routes/logo'
+import { Route as CraftsRouteImport } from './routes/crafts'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CraftsDitherRouteImport } from './routes/crafts/dither'
@@ -25,6 +26,11 @@ const LogoRoute = LogoRouteImport.update({
   path: '/logo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CraftsRoute = CraftsRouteImport.update({
+  id: '/crafts',
+  path: '/crafts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
@@ -36,14 +42,15 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const CraftsDitherRoute = CraftsDitherRouteImport.update({
-  id: '/crafts/dither',
-  path: '/crafts/dither',
-  getParentRoute: () => rootRouteImport,
+  id: '/dither',
+  path: '/dither',
+  getParentRoute: () => CraftsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
+  '/crafts': typeof CraftsRouteWithChildren
   '/logo': typeof LogoRoute
   '/projects': typeof ProjectsRoute
   '/crafts/dither': typeof CraftsDitherRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
+  '/crafts': typeof CraftsRouteWithChildren
   '/logo': typeof LogoRoute
   '/projects': typeof ProjectsRoute
   '/crafts/dither': typeof CraftsDitherRoute
@@ -59,24 +67,38 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/blog': typeof BlogRoute
+  '/crafts': typeof CraftsRouteWithChildren
   '/logo': typeof LogoRoute
   '/projects': typeof ProjectsRoute
   '/crafts/dither': typeof CraftsDitherRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/blog' | '/logo' | '/projects' | '/crafts/dither'
+  fullPaths:
+    | '/'
+    | '/blog'
+    | '/crafts'
+    | '/logo'
+    | '/projects'
+    | '/crafts/dither'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/blog' | '/logo' | '/projects' | '/crafts/dither'
-  id: '__root__' | '/' | '/blog' | '/logo' | '/projects' | '/crafts/dither'
+  to: '/' | '/blog' | '/crafts' | '/logo' | '/projects' | '/crafts/dither'
+  id:
+    | '__root__'
+    | '/'
+    | '/blog'
+    | '/crafts'
+    | '/logo'
+    | '/projects'
+    | '/crafts/dither'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BlogRoute: typeof BlogRoute
+  CraftsRoute: typeof CraftsRouteWithChildren
   LogoRoute: typeof LogoRoute
   ProjectsRoute: typeof ProjectsRoute
-  CraftsDitherRoute: typeof CraftsDitherRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -95,6 +117,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crafts': {
+      id: '/crafts'
+      path: '/crafts'
+      fullPath: '/crafts'
+      preLoaderRoute: typeof CraftsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog': {
       id: '/blog'
       path: '/blog'
@@ -111,20 +140,31 @@ declare module '@tanstack/react-router' {
     }
     '/crafts/dither': {
       id: '/crafts/dither'
-      path: '/crafts/dither'
+      path: '/dither'
       fullPath: '/crafts/dither'
       preLoaderRoute: typeof CraftsDitherRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof CraftsRoute
     }
   }
 }
 
+interface CraftsRouteChildren {
+  CraftsDitherRoute: typeof CraftsDitherRoute
+}
+
+const CraftsRouteChildren: CraftsRouteChildren = {
+  CraftsDitherRoute: CraftsDitherRoute,
+}
+
+const CraftsRouteWithChildren =
+  CraftsRoute._addFileChildren(CraftsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BlogRoute: BlogRoute,
+  CraftsRoute: CraftsRouteWithChildren,
   LogoRoute: LogoRoute,
   ProjectsRoute: ProjectsRoute,
-  CraftsDitherRoute: CraftsDitherRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

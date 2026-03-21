@@ -25,6 +25,7 @@
     "@whatisjery/react-fluid-distortion": "^1.6.1",
     "animejs": "^4.3.6",
     "dotenv": "catalog:",
+    "gifenc": "^1.0.3",
     "lucide-react": "catalog:",
     "next-themes": "catalog:",
     "postprocessing": "^6.38.3",

@@ -9,6 +9,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import type { PropsWithChildren } from "react";
 import { RootCanvasProvider } from "@/components/root-canvas/provider";
 import { RootCanvas } from "@/components/root-canvas/root-canvas";
+import Footer from "@/components/site-footer";
 import { ThemeProvider } from "@/components/theme";
 import appCss from "../index.css?url";
 
@@ -45,6 +46,7 @@ function RootLayout({ children }: PropsWithChildren<{}>) {
 			<ThemeProvider>
 				<main className="max-w-screen overflow-x-hidden px-2">
 					{children}
+					<Footer />
 					<RootCanvas />
 				</main>
 			</ThemeProvider>

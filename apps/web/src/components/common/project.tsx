@@ -436,11 +436,15 @@ function ProjectItemMedia({
 			? undefined
 			: () => {
 					return (
-						<ProjectItemVideo
-							height={mediaHeight}
-							src={media.url}
-							width={mediaWidth}
-						/>
+						<div className="aspect-video w-full max-w-[900px]">
+							<video
+								autoPlay
+								className="h-full w-full"
+								controls
+								playsInline
+								src={media.url}
+							/>
+						</div>
 					);
 				};
 

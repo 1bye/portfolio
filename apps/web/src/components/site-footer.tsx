@@ -23,7 +23,7 @@ export default function Footer({ className }: { className?: string }) {
 	return (
 		<footer
 			className={cn(
-				"relative z-10 mx-auto w-full pt-16 pb-8 md:max-w-2xl",
+				"relative z-1 mx-auto w-full pt-16 pb-8 md:max-w-2xl",
 				className
 			)}
 		>

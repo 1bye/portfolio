@@ -55,9 +55,9 @@ export function FlameParticles({
 			return;
 		}
 
-		// Convert screen coordinates to normalized device coordinates (-1 to 1)
-		const x = (mouse.x / window.innerWidth) * 2 - 1;
-		const y = -(mouse.y / window.innerHeight) * 2 + 1;
+		// Convert page coordinates to viewport-relative NDC (-1 to 1)
+		const x = ((mouse.x - window.scrollX) / window.innerWidth) * 2 - 1;
+		const y = -((mouse.y - window.scrollY) / window.innerHeight) * 2 + 1;
 
 		// Create a vector at the mouse position on the near plane
 		const vector = new THREE.Vector3(x, y, 0.5);

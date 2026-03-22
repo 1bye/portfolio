@@ -6,6 +6,15 @@ import SiteHeader from "@/components/site-header";
 
 export const Route = createFileRoute("/crafts/list")({
 	component: CraftsComponent,
+	head: () => ({
+		meta: [
+			{ title: "Crafts — 1bye" },
+			{
+				name: "description",
+				content: "Experiments and creative tools by Yurii Hulyk.",
+			},
+		],
+	}),
 });
 
 interface Craft {

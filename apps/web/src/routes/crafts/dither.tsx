@@ -19,6 +19,16 @@ import SiteHeader from "@/components/site-header";
 
 export const Route = createFileRoute("/crafts/dither")({
 	component: DitherCraft,
+	head: () => ({
+		meta: [
+			{ title: "Ordered Dither — 1bye" },
+			{
+				name: "description",
+				content:
+					"Upload an image or GIF and apply ordered dithering with real-time configuration.",
+			},
+		],
+	}),
 });
 
 type DitheringMode = "bayer" | "halftone" | "noise" | "crosshatch";

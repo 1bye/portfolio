@@ -1,5 +1,5 @@
 import alchemy from "alchemy";
-import { Vite, Worker } from "alchemy/cloudflare";
+import { TanStackStart, Worker } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 config({ path: "./.env" });
@@ -8,7 +8,7 @@ config({ path: "../../apps/server/.env" });
 
 const app = await alchemy("portfolio");
 
-export const web = await Vite("web", {
+export const web = await TanStackStart("web", {
 	cwd: "../../apps/web",
 	assets: "dist",
 	bindings: {

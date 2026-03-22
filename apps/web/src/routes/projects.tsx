@@ -6,6 +6,15 @@ import SiteHeader from "@/components/site-header";
 
 export const Route = createFileRoute("/projects")({
 	component: ProjectsComponent,
+	head: () => ({
+		meta: [
+			{ title: "Projects — 1bye" },
+			{
+				name: "description",
+				content: "A collection of projects built by Yurii Hulyk.",
+			},
+		],
+	}),
 });
 
 function ProjectsComponent() {

@@ -10,7 +10,7 @@ const SOCIAL_LINKS = [
 		href: "https://www.linkedin.com/in/yurii-hulyk-811186274/",
 	},
 	{ label: "Twitter", href: "https://x.com/MrBye32" },
-	{ label: "Email", href: "mailto:yurii@1bye.dev" },
+	{ label: "Email", href: "mailto:hi@1bye.dev" },
 ];
 
 const NAV_LINKS = [

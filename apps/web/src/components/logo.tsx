@@ -13,13 +13,14 @@ export function AnimatedLogo() {
 		}
 
 		if (hasPlayedThisSession) {
-			startRef.current.style.width = "0px";
-			startRef.current.style.left = "-8px";
-			startRef.current.style.fontSize = "16px";
-			containerRef.current.style.transform = "rotateZ(0deg)";
-			containerRef.current.style.top = "0.65%";
-			containerRef.current.style.left = "0.85%";
-			textRef.current.style.fontSize = "16px";
+			containerRef.current.style.opacity = 0;
+			// startRef.current.style.width = "0px";
+			// startRef.current.style.left = "-8px";
+			// startRef.current.style.fontSize = "16px";
+			// containerRef.current.style.transform = "rotateZ(0deg)";
+			// containerRef.current.style.top = "0.65%";
+			// containerRef.current.style.left = "0.85%";
+			// textRef.current.style.fontSize = "16px";
 			return;
 		}
 

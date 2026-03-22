@@ -1,11 +1,15 @@
+import { cn } from "@portfolio/ui/lib/utils";
 import { RevealBlock } from "./reveal/reveal-block";
 import { RevealLink } from "./reveal/reveal-link";
 import { RevealText } from "./reveal/reveal-text";
 
 const SOCIAL_LINKS = [
 	{ label: "GitHub", href: "https://github.com/1bye" },
-	{ label: "LinkedIn", href: "https://linkedin.com/in/yuriihulyk" },
-	{ label: "Twitter", href: "https://x.com/1bye_dev" },
+	{
+		label: "LinkedIn",
+		href: "https://www.linkedin.com/in/yurii-hulyk-811186274/",
+	},
+	{ label: "Twitter", href: "https://x.com/MrBye32" },
 	{ label: "Email", href: "mailto:yurii@1bye.dev" },
 ];
 
@@ -15,9 +19,14 @@ const NAV_LINKS = [
 	{ label: "Crafts", to: "/crafts/dither" },
 ];
 
-export default function Footer() {
+export default function Footer({ className }: { className?: string }) {
 	return (
-		<footer className="relative z-10 mx-auto w-full pt-16 pb-8 md:max-w-2xl">
+		<footer
+			className={cn(
+				"relative z-10 mx-auto w-full pt-16 pb-8 md:max-w-2xl",
+				className
+			)}
+		>
 			{/*<div className="h-px bg-border" />*/}
 			<div className="flex flex-col gap-6 pt-6">
 				<div className="flex flex-row justify-between">

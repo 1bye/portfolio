@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { RevealProvider } from "@/components/reveal/provider";
+import { RevealLink } from "@/components/reveal/reveal-link";
 import { RevealText } from "@/components/reveal/reveal-text";
 import SiteHeader from "@/components/site-header";
 
@@ -51,7 +52,7 @@ function CraftsComponent() {
 
 function CraftItem({ title, description, to, category }: Craft) {
 	return (
-		<Link className="group flex flex-col gap-1" to={to}>
+		<RevealLink className="group flex flex-col gap-1" to={to}>
 			<div className="flex flex-row items-center gap-1">
 				<RevealText className="group-hover:underline">{title}</RevealText>
 				{category && (
@@ -63,6 +64,6 @@ function CraftItem({ title, description, to, category }: Craft) {
 			<RevealText className="text-muted-foreground text-sm">
 				{description}
 			</RevealText>
-		</Link>
+		</RevealLink>
 	);
 }

@@ -19,7 +19,10 @@ export default function Header({ title }: { title?: string } = {}) {
 					orientation="vertical"
 				/>*/}
 				<div className="flex flex-row items-center gap-2">
-					<RevealText>1bye</RevealText>
+					<RevealLink to="/">
+						<RevealText>1bye</RevealText>
+					</RevealLink>
+
 					<span className="mt-1 flex select-none flex-row font-mono text-muted-foreground/50 text-xs">
 						<RevealText>// Yurii Hulyk</RevealText>
 					</span>
@@ -27,7 +30,7 @@ export default function Header({ title }: { title?: string } = {}) {
 			</div>
 
 			{title && (
-				<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+				<div className="pointer-events-none absolute inset-0 top-10 flex items-center justify-center">
 					<RevealText className="font-mono text-muted-foreground text-xs">
 						{title}
 					</RevealText>
@@ -46,7 +49,7 @@ export default function Header({ title }: { title?: string } = {}) {
 							Projects
 						</RevealText>
 					</RevealLink>
-					<RevealLink className="flex" to="/crafts/dither">
+					<RevealLink className="flex" to="/crafts/list">
 						<RevealText className="text-sm" split="chars">
 							Crafts
 						</RevealText>

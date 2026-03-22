@@ -9,9 +9,12 @@ import { Slider } from "@portfolio/ui/components/slider";
 
 import { createFileRoute } from "@tanstack/react-router";
 import { applyPalette, GIFEncoder, quantize } from "gifenc";
-import { Download, Loader2, Upload } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { RevealProvider } from "@/components/reveal/provider";
+import { RevealBlock } from "@/components/reveal/reveal-block";
+import { RevealText } from "@/components/reveal/reveal-text";
+import SiteFooter from "@/components/site-footer";
 import SiteHeader from "@/components/site-header";
 
 export const Route = createFileRoute("/crafts/dither")({
@@ -237,202 +240,221 @@ function DitherCraft() {
 
 	return (
 		<RevealProvider delay={0}>
-			<div className="relative z-10 mx-auto w-full max-w-5xl *:[[id]]:scroll-mt-22">
-				<SiteHeader title="ordered-dither.tsx" />
-				<div className="w-full pt-8" />
+			<div className="flex-1">
+				<div className="relative z-10 mx-auto w-full max-w-5xl *:[[id]]:scroll-mt-22">
+					<SiteHeader title="ordered-dither.tsx" />
+					<div className="w-full pt-8" />
 
-				<div className="flex flex-col gap-6 lg:flex-row">
-					{/* Preview area */}
-					<div className="flex min-w-0 flex-1 flex-col gap-4">
-						{src ? (
-							<div className="relative overflow-hidden rounded-xl border border-border bg-muted">
-								<div
-									className="flex items-center justify-center p-4"
-									style={{ backgroundColor }}
-								>
+					<div className="flex flex-col gap-6 lg:flex-row">
+						{/* Preview area */}
+						<RevealBlock className="flex min-w-0 flex-1 flex-col gap-4">
+							{src ? (
+								<div className="relative overflow-hidden rounded-xl border border-border bg-muted">
 									<div
-										className="relative"
-										style={{
-											width: "100%",
-											maxWidth: imageDimensions
-												? `${imageDimensions.width}px`
-												: "100%",
-											aspectRatio: imageDimensions
-												? `${imageDimensions.width} / ${imageDimensions.height}`
-												: "16 / 9",
-										}}
+										className="flex items-center justify-center p-4"
+										style={{ backgroundColor }}
 									>
-										<DitherShader
-											backgroundColor={backgroundColor}
-											brightness={brightness / 100}
-											canvasRef={canvasRef}
-											className="h-full w-full"
-											colorMode={colorMode}
-											contrast={contrast / 100}
-											ditherMode={ditherMode}
-											forceGif={isGif}
-											gifFps={isGif ? 10 : undefined}
-											gridSize={gridSize}
-											invert={invert}
-											objectFit="contain"
-											pixelRatio={pixelRatio / 100}
-											playGifs={isGif}
-											primaryColor={primaryColor}
-											secondaryColor={secondaryColor}
-											src={src}
-											threshold={threshold / 100}
-										/>
+										<div
+											className="relative"
+											style={{
+												width: "100%",
+												maxWidth: imageDimensions
+													? `${imageDimensions.width}px`
+													: "100%",
+												aspectRatio: imageDimensions
+													? `${imageDimensions.width} / ${imageDimensions.height}`
+													: "16 / 9",
+											}}
+										>
+											<DitherShader
+												backgroundColor={backgroundColor}
+												brightness={brightness / 100}
+												canvasRef={canvasRef}
+												className="h-full w-full"
+												colorMode={colorMode}
+												contrast={contrast / 100}
+												ditherMode={ditherMode}
+												forceGif={isGif}
+												gifFps={isGif ? 10 : undefined}
+												gridSize={gridSize}
+												invert={invert}
+												objectFit="contain"
+												pixelRatio={pixelRatio / 100}
+												playGifs={isGif}
+												primaryColor={primaryColor}
+												secondaryColor={secondaryColor}
+												src={src}
+												threshold={threshold / 100}
+											/>
+										</div>
 									</div>
 								</div>
-							</div>
-						) : (
-							<button
-								className="flex min-h-80 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-border border-dashed bg-muted/50 transition-colors hover:bg-muted"
-								onClick={() => fileInputRef.current?.click()}
-								onDragOver={handleDragOver}
-								onDrop={handleDrop}
-								type="button"
-							>
-								<div className="flex size-12 items-center justify-center rounded-full bg-accent">
-									<Upload className="size-5 text-muted-foreground" />
-								</div>
-								<div className="text-center">
-									<p className="font-medium text-sm">
-										Drop an image or GIF here
-									</p>
-									<p className="mt-0.5 text-muted-foreground text-xs">
-										or click to browse
-									</p>
-								</div>
-							</button>
-						)}
-
-						<input
-							accept="image/*"
-							className="hidden"
-							onChange={handleFileChange}
-							ref={fileInputRef}
-							type="file"
-						/>
-					</div>
-
-					{/* Controls panel */}
-					<div className="w-full shrink-0 lg:w-80">
-						<div className="flex flex-col gap-4">
-							<ControlSection title="Pattern">
-								<SegmentedControl
-									onChange={(v) => setDitherMode(v as DitheringMode)}
-									options={DITHER_MODES}
-									value={ditherMode}
-								/>
-								<Slider
-									label="Grid Size"
-									max={16}
-									min={1}
-									onChange={setGridSize}
-									value={gridSize}
-								/>
-								<Slider
-									label="Threshold"
-									max={100}
-									min={0}
-									onChange={setThreshold}
-									value={threshold}
-								/>
-								<Slider
-									label="Pixel Ratio"
-									max={400}
-									min={50}
-									onChange={setPixelRatio}
-									step={10}
-									value={pixelRatio}
-								/>
-							</ControlSection>
-
-							<div className="h-px bg-border" />
-
-							<ControlSection title="Color">
-								<SegmentedControl
-									onChange={(v) => setColorMode(v as ColorMode)}
-									options={COLOR_MODES}
-									value={colorMode}
-								/>
-								{colorMode === "duotone" && (
-									<div className="flex gap-2">
-										<ColorInput
-											label="Primary"
-											onChange={setPrimaryColor}
-											value={primaryColor}
-										/>
-										<ColorInput
-											label="Secondary"
-											onChange={setSecondaryColor}
-											value={secondaryColor}
-										/>
+							) : (
+								<button
+									className="flex min-h-80 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl bg-muted/50"
+									onClick={() => fileInputRef.current?.click()}
+									onDragOver={handleDragOver}
+									onDrop={handleDrop}
+									type="button"
+								>
+									{/*<div className="flex size-12 items-center justify-center rounded-full bg-accent">
+										<Upload className="size-5 text-muted-foreground" />
+									</div>*/}
+									<div className="text-center">
+										<RevealText className="font-medium text-sm">
+											Drop an image or GIF here
+										</RevealText>
+										<RevealText className="mt-0.5 text-muted-foreground text-xs">
+											or click to browse
+										</RevealText>
 									</div>
-								)}
-								<ToggleRow
-									checked={invert}
-									label="Invert"
-									onChange={setInvert}
-								/>
-							</ControlSection>
-
-							<div className="h-px bg-border" />
-
-							<ControlSection title="Adjustments">
-								<Slider
-									label="Brightness"
-									max={100}
-									min={-100}
-									onChange={setBrightness}
-									value={brightness}
-								/>
-								<Slider
-									label="Contrast"
-									max={200}
-									min={0}
-									onChange={setContrast}
-									value={contrast}
-								/>
-							</ControlSection>
-
-							<div className="h-px bg-border" />
-
-							<ControlSection title="Background">
-								<ColorInput
-									label="Color"
-									onChange={setBackgroundColor}
-									value={backgroundColor}
-								/>
-							</ControlSection>
-
-							{src && (
-								<>
-									<div className="h-px bg-border" />
-									<button
-										className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-black/[0.06] font-medium text-[13px] text-foreground transition-colors hover:bg-black/[0.1] disabled:opacity-50"
-										disabled={exporting}
-										onClick={handleExport}
-										type="button"
-									>
-										{exporting ? (
-											<Loader2 className="size-4 animate-spin" />
-										) : (
-											<Download className="size-4" />
-										)}
-										{exporting
-											? "Encoding GIF…"
-											: isGif
-												? "Export GIF"
-												: "Export PNG"}
-									</button>
-								</>
+								</button>
 							)}
+
+							<input
+								accept="image/*"
+								className="hidden"
+								onChange={handleFileChange}
+								ref={fileInputRef}
+								type="file"
+							/>
+						</RevealBlock>
+
+						{/* Controls panel */}
+						<div className="w-full shrink-0 lg:w-80">
+							<div className="flex flex-col gap-4">
+								<ControlSection title="Pattern">
+									<RevealBlock>
+										<SegmentedControl
+											onChange={(v) => setDitherMode(v as DitheringMode)}
+											options={DITHER_MODES}
+											value={ditherMode}
+										/>
+									</RevealBlock>
+									<RevealBlock>
+										<Slider
+											label="Grid Size"
+											max={16}
+											min={1}
+											onChange={setGridSize}
+											value={gridSize}
+										/>
+									</RevealBlock>
+									<RevealBlock>
+										<Slider
+											label="Threshold"
+											max={100}
+											min={0}
+											onChange={setThreshold}
+											value={threshold}
+										/>
+									</RevealBlock>
+									<RevealBlock>
+										<Slider
+											label="Pixel Ratio"
+											max={400}
+											min={50}
+											onChange={setPixelRatio}
+											step={10}
+											value={pixelRatio}
+										/>
+									</RevealBlock>
+								</ControlSection>
+
+								<ControlSection title="Color">
+									<RevealBlock>
+										<SegmentedControl
+											onChange={(v) => setColorMode(v as ColorMode)}
+											options={COLOR_MODES}
+											value={colorMode}
+										/>
+									</RevealBlock>
+									{colorMode === "duotone" && (
+										<div className="flex gap-2">
+											<RevealBlock>
+												<ColorInput
+													label="Primary"
+													onChange={setPrimaryColor}
+													value={primaryColor}
+												/>
+											</RevealBlock>
+											<RevealBlock>
+												<ColorInput
+													label="Secondary"
+													onChange={setSecondaryColor}
+													value={secondaryColor}
+												/>
+											</RevealBlock>
+										</div>
+									)}
+									<RevealBlock>
+										<ToggleRow
+											checked={invert}
+											label="Invert"
+											onChange={setInvert}
+										/>
+									</RevealBlock>
+								</ControlSection>
+
+								<ControlSection title="Adjustments">
+									<RevealBlock>
+										<Slider
+											label="Brightness"
+											max={100}
+											min={-100}
+											onChange={setBrightness}
+											value={brightness}
+										/>
+									</RevealBlock>
+									<RevealBlock>
+										<Slider
+											label="Contrast"
+											max={200}
+											min={0}
+											onChange={setContrast}
+											value={contrast}
+										/>
+									</RevealBlock>
+								</ControlSection>
+
+								<ControlSection title="Background">
+									<RevealBlock>
+										<ColorInput
+											label="Color"
+											onChange={setBackgroundColor}
+											value={backgroundColor}
+										/>
+									</RevealBlock>
+								</ControlSection>
+
+								{src && (
+									<RevealBlock>
+										<button
+											className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-black/[0.06] font-medium text-[13px] text-foreground transition-colors hover:bg-black/[0.1] disabled:opacity-50"
+											disabled={exporting}
+											onClick={handleExport}
+											type="button"
+										>
+											{exporting ? (
+												<Loader2 className="size-4 animate-spin" />
+											) : (
+												<Download className="size-4" />
+											)}
+											{exporting
+												? "Encoding GIF…"
+												: isGif
+													? "Export GIF"
+													: "Export PNG"}
+										</button>
+									</RevealBlock>
+								)}
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
+
+			<SiteFooter className="md:max-w-5xl" />
 		</RevealProvider>
 	);
 }
@@ -446,9 +468,9 @@ function ControlSection({
 }) {
 	return (
 		<div className="flex flex-col gap-2">
-			<span className="px-1 font-mono text-[11px] text-muted-foreground uppercase tracking-wider">
+			<RevealText className="px-1 font-mono text-[11px] text-muted-foreground italic tracking-wider">
 				{title}
-			</span>
+			</RevealText>
 			{children}
 		</div>
 	);

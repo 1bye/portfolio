@@ -7,6 +7,7 @@ import { cn } from "@portfolio/ui/lib/utils";
 import { animate, spring } from "animejs";
 import { useEffect, useRef, useState } from "react";
 import { RevealText } from "@/components/reveal/reveal-text";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useStickyBoolean } from "@/hooks/use-sticky-boolean";
 import { RevealBlock } from "../reveal/reveal-block";
 
@@ -165,16 +166,15 @@ export function ProjectItem({
 function ProjectInfo({
 	description,
 	isHovered,
-	height,
 	companyIcon,
 	companyName,
 	companyUrl,
 	note,
 }: ProjectInfo & {
 	isHovered: boolean;
-	height?: number;
 }) {
 	const containerRef = useRef<HTMLParagraphElement>(null);
+	const isMobile = useIsMobile();
 
 	// hovered state
 	const animateTo = () => {
@@ -182,7 +182,7 @@ function ProjectInfo({
 			return;
 		}
 		animate(containerRef.current, {
-			height: height ?? 85,
+			height: isMobile ? 120 : 85,
 			ease: spring({
 				bounce: 0.3,
 				duration: 628,
@@ -224,7 +224,7 @@ function ProjectInfo({
 
 			<div className="relative z-10 flex flex-row gap-3">
 				{(companyName || note) && (
-					<div className="flex flex-row items-center gap-1">
+					<div className="flex flex-row items-end gap-3 sm:items-center sm:gap-1">
 						{companyName && (
 							<RevealBlock
 								className={cn(
@@ -247,7 +247,7 @@ function ProjectInfo({
 						)}
 
 						{note && (
-							<RevealText className="text-muted-foreground text-xs italic">
+							<RevealText className="max-w-64 text-muted-foreground text-xs italic sm:max-w-full">
 								{`“${note}”`}
 							</RevealText>
 						)}

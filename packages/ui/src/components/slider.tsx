@@ -3,7 +3,7 @@
 import { cn } from "@portfolio/ui/lib/utils";
 import { createAnimatable } from "animejs";
 import type * as React from "react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface SliderProps {
 	className?: string;
@@ -25,35 +25,50 @@ function Slider({
 	value,
 }: SliderProps) {
 	const range = max - min;
-	const percent = range === 0 ? 0 : ((value - min) / range) * 100;
+	const percent = range === 0 ? 0 : (value - min) / range;
 
+	const trackRef = useRef<HTMLDivElement>(null);
 	const fillRef = useRef<HTMLDivElement>(null);
 	const indicatorRef = useRef<HTMLDivElement>(null);
-	const fillAnimRef = useRef<Record<string, (v: unknown) => void> | null>(null);
-	const indicatorAnimRef = useRef<Record<string, (v: unknown) => void> | null>(
-		null
-	);
-	const isFirstRender = useRef(true);
 
+	const fillAnimRef = useRef<any>(null);
+	const indicatorAnimRef = useRef<any>(null);
+
+	const [width, setWidth] = useState(0);
+
+	// Measure slider width
 	useEffect(() => {
-		if (isFirstRender.current) {
-			isFirstRender.current = false;
-			if (fillRef.current) {
-				fillAnimRef.current = createAnimatable(fillRef.current, {
-					width: 300,
-					ease: "out(3)",
-				});
-			}
-			if (indicatorRef.current) {
-				indicatorAnimRef.current = createAnimatable(indicatorRef.current, {
-					left: 300,
-					ease: "out(3)",
-				});
-			}
+		if (trackRef.current) {
+			setWidth(trackRef.current.getBoundingClientRect().width);
 		}
-		fillAnimRef.current?.width?.(`${percent}%`);
-		indicatorAnimRef.current?.left?.(`calc(${percent}% - 0.5px)`);
-	}, [percent]);
+	}, []);
+
+	// Create animatables once
+	useEffect(() => {
+		if (!fillAnimRef.current && fillRef.current) {
+			fillAnimRef.current = createAnimatable(fillRef.current, {
+				scaleX: 300,
+				ease: "out(3)",
+			});
+		}
+
+		if (!indicatorAnimRef.current && indicatorRef.current) {
+			indicatorAnimRef.current = createAnimatable(indicatorRef.current, {
+				x: 300,
+				ease: "out(3)",
+			});
+		}
+	}, []);
+
+	// Animate on value change
+	useEffect(() => {
+		fillAnimRef.current?.scaleX(percent);
+
+		const _x = percent * width;
+		const x = Math.max(10, _x - 17);
+
+		indicatorAnimRef.current?.x(x);
+	}, [percent, width]);
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,17 +78,20 @@ function Slider({
 	);
 
 	return (
-		<div className={cn("relative select-none", className)} data-slot="slider">
-			<div className="relative h-11 overflow-hidden rounded-2xl bg-black/[0.04]">
+		<div className={cn("relative select-none", className)}>
+			<div
+				className="relative h-11 overflow-hidden rounded-2xl bg-black/[0.04]"
+				ref={trackRef}
+			>
 				<div
-					className="absolute inset-y-0 left-0 rounded-2xl bg-black/[0.06] transition-none"
+					className="absolute inset-y-0 left-0 w-full origin-left rounded-3xl bg-black/[0.06]"
 					ref={fillRef}
-					style={{ width: `${percent}%` }}
+					style={{ transform: "scaleX(0)" }}
 				/>
 				<div
-					className="pointer-events-none absolute inset-y-2.5 w-px rounded-full bg-black/60"
+					className="pointer-events-none absolute inset-y-3 h-5 w-0.5 rounded-full bg-black/30"
 					ref={indicatorRef}
-					style={{ left: `calc(${percent}% - 0.5px)` }}
+					style={{ transform: "translateX(0px)" }}
 				/>
 				<div className="pointer-events-none absolute inset-0 flex items-center justify-between px-4">
 					<span className="font-medium text-[13px] text-black/70">{label}</span>

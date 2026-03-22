@@ -1,7 +1,10 @@
 import { RevealText } from "@/components/reveal/reveal-text";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { type Project, ProjectItem } from "../common/project";
+import { RevealBlock } from "../reveal/reveal-block";
 
 export function ProjectsBlock() {
+	const isMobile = useIsMobile();
 	const projects: Project[] = [
 		{
 			title: "Apiser",
@@ -171,16 +174,26 @@ export function ProjectsBlock() {
 		([a], [b]) => Number(b) - Number(a)
 	);
 
+	const underlineWidth = isMobile ? 51 : 40;
+
 	return (
 		<section className="flex flex-col gap-3">
 			<div className="flex flex-row items-center justify-between">
 				<RevealText>Projects</RevealText>
-				<div>
-					<RevealText className="border-border border-b text-muted-foreground text-sm italic [&_span]:mr-0">
-						Hover
-					</RevealText>
+				<div className="relative">
+					<RevealBlock>
+						<div
+							className="absolute bottom-0 border-border border-b"
+							style={{
+								width: underlineWidth,
+							}}
+						/>
+					</RevealBlock>
+					{/*<RevealText className="border-border border-b text-muted-foreground text-sm italic [&_span]:mr-0">
+
+					</RevealText>*/}
 					<RevealText className="pl-0.5 text-muted-foreground text-sm italic">
-						projects to see more information
+						{`${isMobile ? "Click on" : "Hover"} projects to see more information`}
 					</RevealText>
 				</div>
 			</div>

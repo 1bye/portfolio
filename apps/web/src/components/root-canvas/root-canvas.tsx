@@ -6,6 +6,7 @@ import { Fluid } from "@whatisjery/react-fluid-distortion";
 import { animate } from "animejs";
 import { useEffect, useMemo, useRef } from "react";
 import type { Group, Mesh } from "three";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { OrderedDither } from "@/lib/r3f/effects/ordered-dither";
 import { Canvas } from "@/lib/r3f/fiber";
 import { FlameParticles } from "@/lib/r3f/particles/flame";
@@ -18,13 +19,13 @@ interface ShapeTransform {
 
 const ROUTE_SHAPES: Record<string, ShapeTransform[]> = {
 	"/": [
-		{ position: [-3, 2, -2], scale: 0.6 },
+		{ position: [-5, 1, -2], scale: 0.6 },
 		{ position: [3.5, -1, -3], scale: 0.5 },
 		{ position: [2, 2.5, -4], scale: 0.45 },
 		{ position: [-2.5, -2, -2.5], scale: 0.4 },
 	],
 	"/projects": [
-		{ position: [-4.5, 0.5, -1.5], scale: 0.5 },
+		{ position: [-4.5, -2, -1.5], scale: 0.5 },
 		{ position: [1, -2.5, -2], scale: 0.65 },
 		{ position: [4, 1, -3], scale: 0.55 },
 		{ position: [-1, 3, -4], scale: 0.35 },
@@ -64,10 +65,7 @@ export function RootCanvas() {
 export function Scene({ route }: { route: string }) {
 	const { theme } = useTheme();
 	const config = getShapeConfig(route);
-	// const texture = useMemo(
-	// 	() => new TextureLoader().load("./portfolio-avatar-01.png"),
-	// 	[]
-	// );
+	const isMobile = useIsMobile();
 
 	return (
 		<>
@@ -81,36 +79,40 @@ export function Scene({ route }: { route: string }) {
 			<CornerShapes />
 			<RouteShapes config={config} />
 
-			<FlameParticles
-				color="#ff0000"
-				lifetimeDecay={0.03}
-				particleCount={30}
-				size={0.1}
-				spawnSpread={0.05}
-				// texture={texture}
-				velocityX={0.005}
-				velocityY={0.01}
-			/>
+			{!isMobile && (
+				<FlameParticles
+					color="#ff0000"
+					lifetimeDecay={0.03}
+					particleCount={30}
+					size={0.1}
+					spawnSpread={0.05}
+					// texture={texture}
+					velocityX={0.005}
+					velocityY={0.01}
+				/>
+			)}
+
 			{/*<axesHelper args={[2, 2, 2]} />*/}
 			<EffectComposer>
 				<OrderedDither ditherScale={3} invertDither={true} useColor={false} />
-				<Fluid
-					backgroundColor="#a7958b"
-					blend={0}
-					curl={10}
-					densityDissipation={0.98}
-					distortion={1}
-					fluidColor="#cfc0a8"
-					force={2}
-					intensity={0.3}
-					pressure={0.94}
-					radius={0.03}
-					rainbow={false}
-					showBackground={true}
-					swirl={5}
-					velocityDissipation={0.99}
-				/>
-				{/*<SixBitRgbDither ditherScale={2} />*/}
+				{isMobile ? null : (
+					<Fluid
+						backgroundColor="#a7958b"
+						blend={0}
+						curl={10}
+						densityDissipation={0.98}
+						distortion={1}
+						fluidColor="#cfc0a8"
+						force={2}
+						intensity={0.3}
+						pressure={0.94}
+						radius={0.03}
+						rainbow={false}
+						showBackground={true}
+						swirl={5}
+						velocityDissipation={0.99}
+					/>
+				)}
 			</EffectComposer>
 		</>
 	);

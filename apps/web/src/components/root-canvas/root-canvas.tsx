@@ -278,8 +278,6 @@ function CornerShapes() {
 }
 
 function ProfileScene() {
-	console.log(location);
-
 	return (
 		<Image
 			position={[-4, 2.5, 0]}

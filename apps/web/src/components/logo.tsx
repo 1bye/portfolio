@@ -1,5 +1,6 @@
 import { animate, createTimeline, splitText, stagger } from "animejs";
 import { useEffect, useRef } from "react";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 export let hasPlayedThisSession = false;
 
@@ -7,6 +8,8 @@ export function AnimatedLogo() {
 	const startRef = useRef<HTMLDivElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const textRef = useRef<HTMLDivElement>(null);
+	const isMobile = useIsMobile();
+
 	useEffect(() => {
 		if (!(startRef.current && containerRef.current && textRef.current)) {
 			return;
@@ -61,7 +64,10 @@ export function AnimatedLogo() {
 		const containerAnimate2 = animate(containerRef.current, {
 			keyframes: {
 				"0%": { top: "50%", left: "50%" },
-				"100%": { top: "0.65%", left: "0.85%" },
+				"100%": {
+					top: isMobile ? "0.6%" : "0.65%",
+					left: isMobile ? "1.2%" : "0.85%",
+				},
 			},
 			ease: "inOutExpo",
 			duration: 2000,

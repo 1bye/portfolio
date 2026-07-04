@@ -552,7 +552,7 @@ function ToggleRow({
 }) {
 	return (
 		<button
-			className="flex items-center justify-between rounded-xl bg-black/[0.04] px-4 py-2.5"
+			className="flex w-full items-center justify-between rounded-xl bg-black/[0.04] px-4 py-2.5"
 			onClick={() => onChange(!checked)}
 			type="button"
 		>

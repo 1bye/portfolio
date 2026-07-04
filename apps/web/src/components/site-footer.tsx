@@ -35,10 +35,9 @@ export default function Footer({ className }: { className?: string }) {
 							Navigate
 						</RevealText>
 						{NAV_LINKS.map((link) => (
-							<RevealBlock>
+							<RevealBlock key={link.to}>
 								<RevealLink
 									className="text-muted-foreground text-sm transition-colors hover:text-foreground"
-									key={link.to}
 									to={link.to}
 								>
 									{link.label}

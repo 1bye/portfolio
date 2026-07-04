@@ -5,7 +5,8 @@
   "scripts": {
     "build": "vite build",
     "serve": "vite preview",
-    "dev:bare": "vite dev"
+    "dev:bare": "vite dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@nandorojo/galeria": "^2.0.2",

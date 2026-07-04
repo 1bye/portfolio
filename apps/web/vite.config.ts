@@ -1,3 +1,4 @@
+import { cloudflare } from "@cloudflare/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 // import { tanstackRouter } from "@tanstack/router-plugin/vite";
@@ -7,12 +8,21 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+	build: {
+		target: "esnext",
+		rollupOptions: {
+			external: ["node:async_hooks", "cloudflare:workers"],
+		},
+	},
 	plugins: [
-		tsconfigPaths(),
+		alchemy(),
+		cloudflare({ viteEnvironment: { name: "ssr" } }),
+		tsconfigPaths({
+			projects: ["./tsconfig.json"],
+		}),
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
-		alchemy(),
 	],
 	server: {
 		port: 3001,

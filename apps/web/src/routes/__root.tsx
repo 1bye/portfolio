@@ -6,6 +6,7 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { RootCanvasProvider } from "@/components/root-canvas/provider";
+import { RootCanvas } from "@/components/root-canvas/root-canvas";
 import { ThemeProvider } from "@/components/theme";
 import appCss from "../index.css?url";
 
@@ -57,7 +58,7 @@ function Providers() {
 				<ThemeProvider>
 					<main className="flex min-h-screen max-w-screen flex-col overflow-x-hidden px-2">
 						<Outlet />
-						{/*<RootCanvas />*/}
+						<RootCanvas />
 					</main>
 				</ThemeProvider>
 			</ClientOnly>

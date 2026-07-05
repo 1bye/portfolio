@@ -10,6 +10,9 @@ import {
 
 type RevealPhase = "waiting" | "revealing" | "revealed" | "leaving";
 
+const noop = () => undefined;
+const unsubscribeNoop = () => undefined;
+
 interface RevealContextValue {
 	/** Duration of the sweep wave in ms */
 	duration: number;
@@ -124,10 +127,10 @@ export function useReveal(): RevealContextValue {
 			phase: "revealed",
 			duration: 0,
 			leave: () => Promise.resolve(),
-			onProgress: () => () => {},
-			registerMaxDelay: () => {},
-			triggerReveal: () => {},
-			triggerHide: () => {},
+			onProgress: () => unsubscribeNoop,
+			registerMaxDelay: noop,
+			triggerReveal: noop,
+			triggerHide: noop,
 		};
 	}
 	return ctx;

@@ -62,14 +62,22 @@ export function RevealText({
 		registerMaxDelay(maxDelay);
 
 		measuredRef.current = true;
-	}, [elements, duration, registerMaxDelay]);
+	}, [duration, registerMaxDelay]);
 
 	const isVisible = phase === "revealing" || phase === "revealed";
 	const isLeaving = phase === "leaving";
+	const opacity = isVisible && !isLeaving ? 1 : 0;
+	const shouldTransition = isVisible || isLeaving;
+	const getTransition = (delay: number) => {
+		if (!shouldTransition) {
+			return "none";
+		}
+
+		return `opacity ${fadeDuration}ms cubic-bezier(0.16,1,0.3,1) ${delay}ms`;
+	};
 
 	return (
 		<span
-			aria-label={children}
 			className={className}
 			ref={containerRef}
 			style={{ display: "inline-block", wordBreak: "break-word" }}
@@ -81,12 +89,8 @@ export function RevealText({
 					style={{
 						display: split === "words" ? "inline-block" : "inline",
 						marginRight: split === "words" ? "0.25em" : undefined,
-						opacity: isLeaving ? 0 : isVisible ? 1 : 0,
-						transition: isLeaving
-							? `opacity ${fadeDuration}ms cubic-bezier(0.16,1,0.3,1) ${delaysRef.current[i] ?? 0}ms`
-							: isVisible
-								? `opacity ${fadeDuration}ms cubic-bezier(0.16,1,0.3,1) ${delaysRef.current[i] ?? 0}ms`
-								: "none",
+						opacity,
+						transition: getTransition(delaysRef.current[i] ?? 0),
 					}}
 				>
 					{el.content}

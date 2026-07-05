@@ -1,7 +1,13 @@
 import { Separator } from "@portfolio/ui/components/separator";
 import { cn } from "@portfolio/ui/lib/utils";
 import { animate, spring } from "animejs";
-import { type ComponentProps, useEffect, useRef, useState } from "react";
+import {
+	type ComponentProps,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import ReactMarkdown from "react-markdown";
 import { RevealBlock } from "../reveal/reveal-block";
 import { RevealText } from "../reveal/reveal-text";
@@ -74,7 +80,9 @@ export function ExperienceItem({ experience }: ExperienceItemProps) {
 					<RevealBlock className="flex size-6 shrink-0 items-center justify-center">
 						<img
 							alt={experience.companyName}
+							decoding="async"
 							height={20}
+							loading="lazy"
 							src={experience.companyLogo}
 							width={20}
 						/>
@@ -112,10 +120,12 @@ export function ExperiencePositionItem({
 	position,
 }: ExperiencePositionItemProps) {
 	const [isHovered, setIsHovered] = useState(false);
+	const [isPinned, setIsPinned] = useState(false);
 	const infoRef = useRef<HTMLDivElement>(null);
+	const isActive = isHovered || isPinned;
 
 	// hovered state
-	const animateTo = () => {
+	const animateTo = useCallback(() => {
 		if (!infoRef.current) {
 			return;
 		}
@@ -126,10 +136,10 @@ export function ExperiencePositionItem({
 				duration: 628,
 			}),
 		});
-	};
+	}, []);
 
 	// initial state
-	const animateFrom = () => {
+	const animateFrom = useCallback(() => {
 		if (!infoRef.current) {
 			return;
 		}
@@ -140,24 +150,28 @@ export function ExperiencePositionItem({
 				duration: 628,
 			}),
 		});
-	};
+	}, []);
 
 	useEffect(() => {
-		if (isHovered && position.description) {
+		if (isActive && position.description) {
 			animateTo();
 		} else {
 			animateFrom();
 		}
-	}, [isHovered]);
+	}, [animateFrom, animateTo, isActive, position.description]);
 
 	return (
-		<div
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}
-		>
+		<div>
 			<div className="hit-area-l-17 relative">
-				<div
+				<button
+					aria-expanded={Boolean(isActive && position.description)}
 					className={cn("group not-prose block w-full select-none text-left")}
+					onBlur={() => setIsHovered(false)}
+					onClick={() => setIsPinned((current) => !current)}
+					onFocus={() => setIsHovered(true)}
+					onPointerEnter={() => setIsHovered(true)}
+					onPointerLeave={() => setIsHovered(false)}
+					type="button"
 				>
 					<div className="relative z-1 flex items-center gap-3">
 						{/*<div
@@ -199,7 +213,7 @@ export function ExperiencePositionItem({
 							</dd>
 						</dl>
 					</div>
-				</div>
+				</button>
 
 				<div className="overflow-hidden" ref={infoRef}>
 					{position.description && (
@@ -214,7 +228,7 @@ export function ExperiencePositionItem({
 				{Array.isArray(position.skills) && position.skills.length > 0 && (
 					<ul className="not-prose flex flex-wrap gap-1">
 						{position.skills.map((skill, index) => (
-							<li className="flex" key={index}>
+							<li className="flex" key={`${position.id}-${skill}`}>
 								<RevealBlock>
 									<Skill>
 										{skill}

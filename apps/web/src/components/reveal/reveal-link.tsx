@@ -21,9 +21,9 @@ export function RevealLink({ onClick, ...props }: RevealLinkProps) {
 
 			onClick?.(e as never);
 
-			void leave().then(() => {
-				void router.navigate({ to: href });
-			});
+			leave()
+				.then(() => router.navigate({ to: href }))
+				.catch(() => undefined);
 		},
 		[leave, router, props.to, onClick, pathname]
 	);

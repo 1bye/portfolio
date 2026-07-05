@@ -15,6 +15,7 @@ import {
 // ---- Types ----
 
 interface PhotoViewItem {
+	id: string;
 	render?: () => ReactNode;
 	src?: string;
 }
@@ -113,12 +114,14 @@ export function PhotoViewProvider({ children }: { children: ReactNode }) {
 export function PhotoView({
 	children,
 	className,
+	id,
 	index,
 	render,
 	src,
 }: {
 	children: ReactNode;
 	className?: string;
+	id?: string;
 	index: number;
 	render?: () => ReactNode;
 	src?: string;
@@ -126,32 +129,20 @@ export function PhotoView({
 	const { register, unregister, open } = usePhotoViewContext();
 
 	useEffect(() => {
-		register(index, { src, render });
+		register(index, { id: id ?? src ?? `item-${index}`, render, src });
 		return () => unregister(index);
-	}, [index, src, render, register, unregister]);
+	}, [id, index, src, render, register, unregister]);
 
 	const handleOpen = useCallback(() => open(index), [open, index]);
 
-	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent) => {
-			if (e.key === "Enter" || e.key === " ") {
-				e.preventDefault();
-				open(index);
-			}
-		},
-		[open, index]
-	);
-
 	return (
-		<div
-			className={cn("cursor-zoom-in", className)}
+		<button
+			className={cn("cursor-zoom-in border-0 bg-transparent p-0", className)}
 			onClick={handleOpen}
-			onKeyDown={handleKeyDown}
-			role="button"
-			tabIndex={0}
+			type="button"
 		>
 			{children}
-		</div>
+		</button>
 	);
 }
 
@@ -272,17 +263,21 @@ function PhotoViewOverlay({
 					onTouchStart={onTouchStart}
 					transition={SPRING}
 				>
-					{items.map((item, i) => (
+					{items.map((item) => (
 						<div
 							className="flex h-full w-screen shrink-0 items-center justify-center p-8"
-							key={i}
+							key={item.id}
 						>
 							{item.src && (
 								<img
 									alt=""
 									className="max-h-full max-w-full select-none object-contain"
+									decoding="async"
 									draggable={false}
+									height={900}
+									loading="lazy"
 									src={item.src}
+									width={1600}
 								/>
 							)}
 							{item.render?.()}

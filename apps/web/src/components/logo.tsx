@@ -1,4 +1,4 @@
-import { animate, createTimeline, splitText, stagger } from "animejs";
+import { animate, createTimeline } from "animejs";
 import { useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 
@@ -27,9 +27,13 @@ export function AnimatedLogo() {
 			return;
 		}
 
-		hasPlayedThisSession = true;
-
-		const tl = createTimeline({ defaults: { duration: 750 }, autoplay: false });
+		const tl = createTimeline({
+			defaults: { duration: 750 },
+			autoplay: false,
+			onComplete: () => {
+				hasPlayedThisSession = true;
+			},
+		});
 
 		const startAnimate = animate(startRef.current, {
 			keyframes: {
@@ -38,6 +42,7 @@ export function AnimatedLogo() {
 			},
 			ease: "inOutExpo",
 			duration: 2000,
+			autoplay: false,
 		});
 
 		const containerAnimate = animate(containerRef.current, {
@@ -47,18 +52,7 @@ export function AnimatedLogo() {
 			},
 			ease: "inOutExpo",
 			duration: 2000,
-		});
-
-		const { chars } = splitText(textRef.current, { words: false, chars: true });
-
-		const textAnimate = animate(chars, {
-			keyframes: {
-				"0%": { translateY: 10, opacity: 0 },
-				"100%": { translateY: 0, opacity: 1 },
-			},
-			ease: "inOutExpo",
-			duration: 2000,
-			delay: stagger(50),
+			autoplay: false,
 		});
 
 		const containerAnimate2 = animate(containerRef.current, {
@@ -71,6 +65,7 @@ export function AnimatedLogo() {
 			},
 			ease: "inOutExpo",
 			duration: 2000,
+			autoplay: false,
 		});
 
 		const startAnimate2 = animate(startRef.current, {
@@ -80,6 +75,7 @@ export function AnimatedLogo() {
 			},
 			ease: "inOutExpo",
 			duration: 2000,
+			autoplay: false,
 		});
 
 		const textAnimate2 = animate(textRef.current, {
@@ -89,6 +85,7 @@ export function AnimatedLogo() {
 			},
 			ease: "inOutExpo",
 			duration: 2000,
+			autoplay: false,
 		});
 
 		const containerAnimate3 = animate(containerRef.current, {
@@ -98,12 +95,12 @@ export function AnimatedLogo() {
 			},
 			ease: "inOutExpo",
 			duration: 600,
+			autoplay: false,
 		});
 
 		tl.label("Start")
 			.sync(startAnimate, 0)
 			.sync(containerAnimate, 0)
-			// .sync(textAnimate, 100)
 			.sync(containerAnimate2, 1400)
 			.sync(startAnimate2, 2400)
 			.sync(textAnimate2, 2400)
@@ -114,7 +111,7 @@ export function AnimatedLogo() {
 		return () => {
 			tl.pause();
 		};
-	}, []);
+	}, [isMobile]);
 
 	return (
 		<>
@@ -151,82 +148,6 @@ export function AnimatedLogo() {
 					</div>
 
 					<div className="text-5xl" ref={textRef}>
-						bye
-					</div>
-				</div>
-			</div>
-		</>
-	);
-}
-
-export function Animated2Logo() {
-	const startRef = useRef<HTMLDivElement>(null);
-	const midRef = useRef<HTMLDivElement>(null);
-	const tl = createTimeline({ defaults: { duration: 750 }, autoplay: false });
-
-	useEffect(() => {
-		if (!(startRef.current && midRef.current)) {
-			return;
-		}
-
-		const startAnimate = animate(startRef.current, {
-			keyframes: {
-				"0%": { translateY: 100, rotateZ: 0 },
-				"30%": { translateY: 0, ease: "outBounce", rotateZ: 20 },
-				"100%": { translateY: 52, ease: "outBounce", rotateZ: 0 },
-			},
-			duration: 1800,
-		});
-
-		const midAnimate = animate(midRef.current, {
-			keyframes: {
-				"0%": { translateX: -75 },
-				"100%": { translateX: 0, ease: "in" },
-			},
-			duration: 1800,
-			delay: 1000,
-		});
-
-		tl.label("Start").sync(startAnimate).sync(midAnimate);
-	}, []);
-
-	return (
-		<>
-			<button
-				className="absolute top-4 left-4 bg-red-400 px-5 py-4"
-				onClick={() => {
-					tl.restart();
-				}}
-			>
-				play
-			</button>
-
-			<div className="flex w-24 flex-row items-end">
-				<div
-					className="shrink-0 overflow-hidden"
-					style={{
-						height: 100,
-					}}
-				>
-					<div
-						className="flex w-5 text-5xl"
-						ref={startRef}
-						style={{
-							transform: "translateY(100px)",
-						}}
-					>
-						1
-					</div>
-				</div>
-
-				<div className="w-48 overflow-hidden">
-					<div
-						className="text-5xl"
-						ref={midRef}
-						style={{
-							transform: "translateX(-75px)",
-						}}
-					>
 						bye
 					</div>
 				</div>

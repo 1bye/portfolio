@@ -6,7 +6,6 @@ interface RevealBlockProps {
 	className?: string;
 	/** Duration of the fade (ms) */
 	fadeDuration?: number;
-	onDone?: () => void;
 	onLeave?: () => void;
 	onStart?: () => void;
 }
@@ -16,7 +15,6 @@ export function RevealBlock({
 	className = "",
 	fadeDuration = 600,
 	onStart,
-	onDone,
 	onLeave,
 }: RevealBlockProps) {
 	const { phase, duration, registerMaxDelay } = useReveal();
@@ -45,6 +43,11 @@ export function RevealBlock({
 
 	const isVisible = phase === "revealing" || phase === "revealed";
 	const isLeaving = phase === "leaving";
+	const opacity = isVisible && !isLeaving ? 1 : 0;
+	const transition =
+		isVisible || isLeaving
+			? `opacity ${fadeDuration}ms cubic-bezier(0.16,1,0.3,1) ${delayRef.current}ms`
+			: "none";
 
 	// Detect start
 	useLayoutEffect(() => {
@@ -92,12 +95,8 @@ export function RevealBlock({
 			className={className}
 			ref={containerRef}
 			style={{
-				opacity: isLeaving ? 0 : isVisible ? 1 : 0,
-				transition: isLeaving
-					? `opacity ${fadeDuration}ms cubic-bezier(0.16,1,0.3,1) ${delayRef.current}ms`
-					: isVisible
-						? `opacity ${fadeDuration}ms cubic-bezier(0.16,1,0.3,1) ${delayRef.current}ms`
-						: "none",
+				opacity,
+				transition,
 			}}
 		>
 			{children}

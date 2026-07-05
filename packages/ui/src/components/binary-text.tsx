@@ -116,7 +116,7 @@ function Word({
 			clearInterval(scrambleTimer);
 			clearInterval(stepTimer);
 		};
-	}, [play, startDelay, word, speed, scrambleSpeed]);
+	}, [play, startDelay, word, speed, scrambleSpeed, visible]);
 
 	if (!visible) {
 		return null;
@@ -150,6 +150,15 @@ export function BinaryText({
 		.join("");
 
 	const words = text.split(" ").filter((w) => w.length > 0);
+	const wordCounts = new Map<string, number>();
+	const wordsWithKeys = words.map((word) => {
+		const count = (wordCounts.get(word) ?? 0) + 1;
+		wordCounts.set(word, count);
+		return {
+			key: `${word}-${count}`,
+			word,
+		};
+	});
 
 	const wordDurations = words.map((w) => w.length * speed);
 
@@ -157,15 +166,15 @@ export function BinaryText({
 
 	return (
 		<div className="flex flex-wrap">
-			{words.map((word, i) => {
+			{wordsWithKeys.map(({ key, word }, i) => {
 				const delay = accumulated;
-				accumulated += wordDurations[i] * wordDelayMultiplier;
+				accumulated += (wordDurations[i] ?? 0) * wordDelayMultiplier;
 
 				return (
 					<Word
 						animatingClassName={animatingClassName}
 						className={className}
-						key={i}
+						key={key}
 						play={play}
 						scrambleSpeed={scrambleSpeed}
 						speed={speed}

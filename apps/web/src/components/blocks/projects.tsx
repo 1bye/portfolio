@@ -51,7 +51,7 @@ export function ProjectsBlock() {
 				{
 					type: "video",
 					url: "projects/concero/video.mp4",
-					gif: "projects/concero/video.gif",
+					poster: "projects/concero/poster.webp",
 				},
 				{
 					type: "image",
@@ -86,7 +86,7 @@ export function ProjectsBlock() {
 				{
 					type: "video",
 					url: "projects/invoice-xpress-app/video.mp4",
-					gif: "projects/invoice-xpress-app/video.gif",
+					poster: "projects/invoice-xpress-app/poster.webp",
 				},
 				{
 					type: "image",
@@ -109,7 +109,7 @@ export function ProjectsBlock() {
 				{
 					type: "video",
 					url: "projects/reset-studio-app/video.mp4",
-					gif: "projects/reset-studio-app/video.gif",
+					poster: "projects/reset-studio-app/poster.webp",
 				},
 				{
 					type: "image",
@@ -131,7 +131,7 @@ export function ProjectsBlock() {
 				{
 					type: "video",
 					url: "projects/nouro-flow/video.mp4",
-					gif: "projects/nouro-flow/video.gif",
+					poster: "projects/nouro-flow/poster.webp",
 				},
 				{
 					type: "image",

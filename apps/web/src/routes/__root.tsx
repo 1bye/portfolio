@@ -5,18 +5,28 @@ import {
 	Outlet,
 	Scripts,
 } from "@tanstack/react-router";
+import { lazy, type ReactNode, Suspense, useEffect, useState } from "react";
 import { RootCanvasProvider } from "@/components/root-canvas/provider";
-import { RootCanvas } from "@/components/root-canvas/root-canvas";
 import { ThemeProvider } from "@/components/theme";
 import appCss from "../index.css?url";
 
-export type RouterAppContext = {};
+export type RouterAppContext = Record<string, never>;
 
 const SITE_URL = "https://1bye.dev";
 const DEFAULT_TITLE = "Yurii Hulyk — 1bye";
 const DEFAULT_DESCRIPTION =
 	"Software engineer crafting interactive experiences on the web.";
 const OG_IMAGE = `${SITE_URL}/og_image.png`;
+const LazyRootCanvas = lazy(() =>
+	import("@/components/root-canvas/root-canvas").then((module) => ({
+		default: module.RootCanvas,
+	}))
+);
+const CANVAS_DEFER_MS = 5200;
+
+const shouldSkipCanvas = () =>
+	window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+	window.matchMedia("(max-width: 767px)").matches;
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
 	head: () => ({
@@ -56,13 +66,41 @@ function Providers() {
 		<RootCanvasProvider>
 			<ClientOnly>
 				<ThemeProvider>
-					<main className="flex min-h-screen max-w-screen flex-col overflow-x-hidden px-2">
+					<main className="relative isolate flex min-h-screen max-w-screen flex-col overflow-x-hidden px-2">
 						<Outlet />
-						<RootCanvas />
+						<DeferredRootCanvas />
 					</main>
 				</ThemeProvider>
 			</ClientOnly>
 		</RootCanvasProvider>
+	);
+}
+
+function DeferredRootCanvas() {
+	const [shouldRender, setShouldRender] = useState(false);
+
+	useEffect(() => {
+		if (shouldSkipCanvas()) {
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setShouldRender(true);
+		}, CANVAS_DEFER_MS);
+
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	}, []);
+
+	if (!shouldRender) {
+		return null;
+	}
+
+	return (
+		<Suspense fallback={null}>
+			<LazyRootCanvas />
+		</Suspense>
 	);
 }
 
@@ -74,7 +112,7 @@ function RootComponent() {
 	);
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en">
 			<head>

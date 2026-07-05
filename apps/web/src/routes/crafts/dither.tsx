@@ -10,7 +10,7 @@ import { Slider } from "@portfolio/ui/components/slider";
 import { createFileRoute } from "@tanstack/react-router";
 import { applyPalette, GIFEncoder, quantize } from "gifenc";
 import { Download, Loader2 } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RevealProvider } from "@/components/reveal/provider";
 import { RevealBlock } from "@/components/reveal/reveal-block";
 import { RevealText } from "@/components/reveal/reveal-text";
@@ -71,6 +71,14 @@ function DitherCraft() {
 	const [backgroundColor, setBackgroundColor] = useState("#000000");
 	const [isGif, setIsGif] = useState(false);
 	const [exporting, setExporting] = useState(false);
+
+	useEffect(() => {
+		return () => {
+			if (src) {
+				URL.revokeObjectURL(src);
+			}
+		};
+	}, [src]);
 
 	const handleFile = useCallback((file: File) => {
 		const url = URL.createObjectURL(file);
@@ -242,11 +250,16 @@ function DitherCraft() {
 
 	const handleExport = useCallback(() => {
 		if (isGif) {
-			void handleExportGif();
-		} else {
-			handleExportPng();
+			handleExportGif().catch(() => {
+				setExporting(false);
+			});
+			return;
 		}
+
+		handleExportPng();
 	}, [isGif, handleExportGif, handleExportPng]);
+
+	const exportLabel = getExportLabel(exporting, isGif);
 
 	return (
 		<RevealProvider delay={0}>
@@ -440,7 +453,7 @@ function DitherCraft() {
 								{src && (
 									<RevealBlock>
 										<button
-											className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-black/[0.06] font-medium text-[13px] text-foreground transition-colors hover:bg-black/[0.1] disabled:opacity-50"
+											className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary font-medium text-[13px] text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
 											disabled={exporting}
 											onClick={handleExport}
 											type="button"
@@ -450,11 +463,7 @@ function DitherCraft() {
 											) : (
 												<Download className="size-4" />
 											)}
-											{exporting
-												? "Encoding GIF…"
-												: isGif
-													? "Export GIF"
-													: "Export PNG"}
+											{exportLabel}
 										</button>
 									</RevealBlock>
 								)}
@@ -467,6 +476,18 @@ function DitherCraft() {
 			<SiteFooter className="md:max-w-5xl" />
 		</RevealProvider>
 	);
+}
+
+function getExportLabel(exporting: boolean, isGif: boolean) {
+	if (exporting) {
+		return "Encoding GIF...";
+	}
+
+	if (isGif) {
+		return "Export GIF";
+	}
+
+	return "Export PNG";
 }
 
 function ControlSection({
@@ -496,13 +517,13 @@ function SegmentedControl<T extends string>({
 	onChange: (value: T) => void;
 }) {
 	return (
-		<div className="flex gap-1 rounded-xl bg-black/[0.04] p-1">
+		<div className="flex gap-1 rounded-xl bg-muted p-1">
 			{options.map((option) => (
 				<button
 					className={`flex-1 rounded-lg px-2 py-1.5 font-medium text-[12px] transition-colors ${
 						value === option.value
-							? "bg-black/[0.08] text-black/70"
-							: "text-black/40 hover:text-black/60"
+							? "bg-background text-foreground shadow-sm"
+							: "text-muted-foreground hover:text-foreground"
 					}`}
 					key={option.value}
 					onClick={() => onChange(option.value)}
@@ -525,16 +546,16 @@ function ColorInput({
 	onChange: (value: string) => void;
 }) {
 	return (
-		<label className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl bg-black/[0.04] px-3 py-2">
+		<label className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl bg-muted px-3 py-2">
 			<input
-				className="size-5 cursor-pointer appearance-none rounded-md border border-black/15"
+				className="size-5 cursor-pointer appearance-none rounded-md border border-border"
 				onChange={(e) => onChange(e.target.value)}
 				style={{ backgroundColor: value }}
 				type="color"
 				value={value}
 			/>
-			<span className="font-medium text-[12px] text-black/60">{label}</span>
-			<span className="ml-auto font-mono text-[11px] text-black/40">
+			<span className="font-medium text-[12px] text-foreground">{label}</span>
+			<span className="ml-auto font-mono text-[11px] text-muted-foreground">
 				{value}
 			</span>
 		</label>
@@ -552,18 +573,18 @@ function ToggleRow({
 }) {
 	return (
 		<button
-			className="flex w-full items-center justify-between rounded-xl bg-black/[0.04] px-4 py-2.5"
+			className="flex w-full items-center justify-between rounded-xl bg-muted px-4 py-2.5"
 			onClick={() => onChange(!checked)}
 			type="button"
 		>
-			<span className="font-medium text-[13px] text-black/70">{label}</span>
+			<span className="font-medium text-[13px] text-foreground">{label}</span>
 			<div
 				className={`flex h-5 w-9 items-center rounded-full px-0.5 transition-colors ${
-					checked ? "bg-black/30" : "bg-black/15"
+					checked ? "bg-primary" : "bg-input"
 				}`}
 			>
 				<div
-					className={`size-4 rounded-full bg-black/60 transition-transform ${
+					className={`size-4 rounded-full bg-background shadow-sm transition-transform ${
 						checked ? "translate-x-4" : "translate-x-0"
 					}`}
 				/>

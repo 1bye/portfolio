@@ -32,6 +32,15 @@ export function WordsStagger({
 		.join("");
 
 	const words = text.split(" ").filter((word) => word.length > 0);
+	const wordCounts = new Map<string, number>();
+	const wordsWithKeys = words.map((word) => {
+		const count = (wordCounts.get(word) ?? 0) + 1;
+		wordCounts.set(word, count);
+		return {
+			key: `${word}-${count}`,
+			word,
+		};
+	});
 
 	const transition: Transition = {
 		type: "tween",
@@ -87,12 +96,8 @@ export function WordsStagger({
 			onAnimationStart={onStart}
 			variants={containerVariants}
 		>
-			{words.map((word, index) => (
-				<motion.span
-					className="inline-block"
-					key={`${word}-${index}`}
-					variants={wordVariants}
-				>
+			{wordsWithKeys.map(({ key, word }, index) => (
+				<motion.span className="inline-block" key={key} variants={wordVariants}>
 					{word}
 					{index < words.length - 1 && (
 						<span className="inline-block">&nbsp;</span>

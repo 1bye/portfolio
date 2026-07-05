@@ -66,7 +66,7 @@ function CraftItem({ title, description, to, category }: Craft) {
 				<RevealText className="group-hover:underline">{title}</RevealText>
 				{category && (
 					<RevealText className="mt-1 flex whitespace-nowrap font-mono text-muted-foreground/50 text-xs italic">
-						{"# ${category}"}
+						{`# ${category}`}
 					</RevealText>
 				)}
 			</div>

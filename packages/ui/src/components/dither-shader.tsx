@@ -78,10 +78,11 @@ export function parseColor(color: string): [number, number, number] {
 	if (color.startsWith("#")) {
 		const hex = color.slice(1);
 		if (hex.length === 3) {
+			const [r = "0", g = "0", b = "0"] = hex;
 			return [
-				Number.parseInt(hex[0] + hex[0], 16),
-				Number.parseInt(hex[1] + hex[1], 16),
-				Number.parseInt(hex[2] + hex[2], 16),
+				Number.parseInt(r + r, 16),
+				Number.parseInt(g + g, 16),
+				Number.parseInt(b + b, 16),
 			];
 		}
 		return [
@@ -92,10 +93,11 @@ export function parseColor(color: string): [number, number, number] {
 	}
 	const match = color.match(RGB_COLOR_REGEX);
 	if (match) {
+		const [, r = "0", g = "0", b = "0"] = match;
 		return [
-			Number.parseInt(match[1], 10),
-			Number.parseInt(match[2], 10),
-			Number.parseInt(match[3], 10),
+			Number.parseInt(r, 10),
+			Number.parseInt(g, 10),
+			Number.parseInt(b, 10),
 		];
 	}
 	return [0, 0, 0];
@@ -175,7 +177,7 @@ function computeRawDitherThreshold({
 }): number {
 	switch (ditherMode) {
 		case "bayer":
-			return bayerMatrix[matrixY][matrixX] / matrixScale;
+			return (bayerMatrix[matrixY]?.[matrixX] ?? 0) / matrixScale;
 		case "halftone": {
 			const angle = Math.PI / 4;
 			const scale = gridSize * 2;
@@ -194,7 +196,7 @@ function computeRawDitherThreshold({
 			return (line1 + line2) / 2;
 		}
 		default:
-			return bayerMatrix[matrixY][matrixX] / matrixScale;
+			return (bayerMatrix[matrixY]?.[matrixX] ?? 0) / matrixScale;
 	}
 }
 
@@ -260,7 +262,8 @@ function computeColorForMode({
 
 	if (colorMode === "custom") {
 		if (customPalette.length === 2) {
-			return luminance < ditherThreshold ? customPalette[0] : customPalette[1];
+			const [dark = [0, 0, 0], light = [255, 255, 255]] = customPalette;
+			return luminance < ditherThreshold ? dark : light;
 		}
 
 		const adjustedLuminance = luminance + (ditherThreshold - 0.5) * 0.5;
@@ -437,11 +440,11 @@ function isGifSource(src: string): boolean {
 	return srcWithoutQuery.toLowerCase().endsWith(".gif");
 }
 
-type DecodedGif = {
+interface DecodedGif {
 	frames: ImageBitmap[];
 	height: number;
 	width: number;
-};
+}
 
 function isVideoFrame(value: unknown): value is VideoFrame {
 	return typeof VideoFrame !== "undefined" && value instanceof VideoFrame;
@@ -662,7 +665,8 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 		};
 	}, []);
 
-	// Process image and apply dithering when dimensions or settings change
+	// Process image and apply dithering when dimensions or settings change.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Canvas refs are read at render setup time; ref.current changes do not trigger React renders.
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		const img = imageRef.current;
@@ -763,48 +767,6 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 			};
 		};
 
-		const startDecodedGifLoop = (
-			ctx: CanvasRenderingContext2D,
-			updateImageData: () => boolean,
-			frameCount: number
-		) => {
-			const frameMs = 1000 / Math.max(1, gifFps);
-			let currentFrameIndex = 0;
-			let startTimeMs = 0;
-
-			const tick = (now: number) => {
-				if (isCancelled) {
-					return;
-				}
-
-				if (startTimeMs === 0) {
-					startTimeMs = now;
-				}
-
-				const elapsedMs = now - startTimeMs;
-				const nextFrameIndex =
-					Math.floor(elapsedMs / frameMs) % Math.max(1, frameCount);
-				const didChangeFrame = nextFrameIndex !== currentFrameIndex;
-
-				if (didChangeFrame) {
-					currentFrameIndex = nextFrameIndex;
-					gifFrameTimeRef.current = now;
-					if (!updateImageData()) {
-						return;
-					}
-				}
-
-				const time = updateTime();
-				if (animated || didChangeFrame) {
-					applyDithering(ctx, displayWidth, displayHeight, time);
-				}
-
-				animationRef.current = requestAnimationFrame(tick);
-			};
-
-			animationRef.current = requestAnimationFrame(tick);
-		};
-
 		const updateTime = (): number => {
 			if (!animated) {
 				return 0;
@@ -896,6 +858,7 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 				}
 			};
 
+			// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: GIF decoding fallback keeps related frame state in one browser API boundary.
 			const startWithDecodedGif = async () => {
 				try {
 					const decoded = await decodeGifWithImageDecoder(
@@ -931,6 +894,7 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 						return;
 					}
 
+					// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Frame scheduling needs explicit cancellation, animation, and GIF-advance branches.
 					const tickFrameIndex = (now: number) => {
 						if (isCancelled) {
 							return;
@@ -968,7 +932,9 @@ export const DitherShader: React.FC<DitherShaderProps> = ({
 			};
 
 			if (canDecodeGif) {
-				void startWithDecodedGif();
+				startWithDecodedGif().catch(() => {
+					startWithImageElement();
+				});
 				return;
 			}
 

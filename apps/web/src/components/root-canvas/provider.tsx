@@ -1,7 +1,9 @@
 import {
 	createContext,
-	type PropsWithChildren,
+	type ReactNode,
+	useCallback,
 	useContext,
+	useMemo,
 	useState,
 } from "react";
 
@@ -16,23 +18,30 @@ export interface RootCanvasProps {
 	unregisterTarget: (targetId: string) => void;
 }
 
-export const RootCanvasContext = createContext<RootCanvasProps>({});
+export const RootCanvasContext = createContext<RootCanvasProps | undefined>(
+	undefined
+);
 
-export function RootCanvasProvider({ children }: PropsWithChildren<{}>) {
+export function RootCanvasProvider({ children }: { children: ReactNode }) {
 	const [targets, setTargets] = useState<RootCanvasTarget[]>([]);
 
-	const registerTarget = (target: RootCanvasTarget) => {
-		setTargets([...targets, target]);
-	};
+	const registerTarget = useCallback((target: RootCanvasTarget) => {
+		setTargets((currentTargets) => [...currentTargets, target]);
+	}, []);
 
-	const unregisterTarget = (targetId: string) => {
-		setTargets(targets.filter((t) => t.id !== targetId));
-	};
+	const unregisterTarget = useCallback((targetId: string) => {
+		setTargets((currentTargets) =>
+			currentTargets.filter((target) => target.id !== targetId)
+		);
+	}, []);
+
+	const value = useMemo(
+		() => ({ registerTarget, targets, unregisterTarget }),
+		[registerTarget, targets, unregisterTarget]
+	);
 
 	return (
-		<RootCanvasContext.Provider
-			value={{ targets, registerTarget, unregisterTarget }}
-		>
+		<RootCanvasContext.Provider value={value}>
 			{children}
 		</RootCanvasContext.Provider>
 	);

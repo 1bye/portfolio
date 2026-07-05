@@ -2,10 +2,15 @@ import {
 	PhotoView,
 	PhotoViewProvider,
 } from "@portfolio/ui/components/photo-view";
-import { VideoPlayer } from "@portfolio/ui/components/video";
 import { cn } from "@portfolio/ui/lib/utils";
 import { animate, spring } from "animejs";
-import { useEffect, useRef, useState } from "react";
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { RevealText } from "@/components/reveal/reveal-text";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useStickyBoolean } from "@/hooks/use-sticky-boolean";
@@ -29,7 +34,7 @@ export interface ProjectInfo {
 }
 
 export interface ProjectMedia {
-	gif?: string;
+	poster?: string;
 	type: "image" | "video";
 	url: string;
 }
@@ -47,10 +52,12 @@ export function ProjectItem({
 	unavailable,
 }: Project) {
 	const [isHovered, setIsHovered] = useState(false);
-	const unavailableStrokeRef = useRef<HTMLParagraphElement>(null);
+	const [isPinned, setIsPinned] = useState(false);
+	const unavailableStrokeRef = useRef<HTMLDivElement>(null);
+	const isActive = isHovered || isPinned;
 
 	// end state
-	const animateTo = () => {
+	const animateTo = useCallback(() => {
 		if (!unavailableStrokeRef.current) {
 			return;
 		}
@@ -59,10 +66,10 @@ export function ProjectItem({
 			duration: 300,
 			delay: 700,
 		});
-	};
+	}, []);
 
 	// initial state
-	const animateFrom = () => {
+	const animateFrom = useCallback(() => {
 		if (!unavailableStrokeRef.current) {
 			return;
 		}
@@ -70,7 +77,7 @@ export function ProjectItem({
 			width: "0%",
 			duration: 200,
 		});
-	};
+	}, []);
 
 	// useEffect(() => {
 	// 	if (unavailable) {
@@ -82,12 +89,17 @@ export function ProjectItem({
 
 	return (
 		<PhotoViewProvider>
-			<div
-				className="hit-area-l-18 hit-area-t-2 flex w-full flex-col"
-				onMouseEnter={() => setIsHovered(true)}
-				onMouseLeave={() => setIsHovered(false)}
-			>
-				<div className="flex w-full flex-row items-center gap-1">
+			<div className="flex w-full flex-col">
+				<button
+					aria-expanded={isActive}
+					className="hit-area-l-18 hit-area-t-2 flex w-fit flex-row items-center gap-1 text-left"
+					onBlur={() => setIsHovered(false)}
+					onClick={() => setIsPinned((current) => !current)}
+					onFocus={() => setIsHovered(true)}
+					onPointerEnter={() => setIsHovered(true)}
+					onPointerLeave={() => setIsHovered(false)}
+					type="button"
+				>
 					<RevealBlock
 						className="overflow-hidden rounded-full"
 						onLeave={() => {
@@ -127,7 +139,8 @@ export function ProjectItem({
 							}}
 						>
 							<svg
-								className=""
+								aria-hidden="true"
+								focusable="false"
 								height="6"
 								preserveAspectRatio="none"
 								viewBox="0 0 100 6"
@@ -135,7 +148,7 @@ export function ProjectItem({
 								<path
 									d="M0 3 Q5 0 10 3 T20 3 T30 3 T40 3 T50 3 T60 3 T70 3 T80 3 T90 3 T100 3"
 									fill="none"
-									stroke="black"
+									stroke="currentColor"
 									strokeWidth="2"
 								/>
 							</svg>
@@ -147,17 +160,17 @@ export function ProjectItem({
 							{`# ${category}`}
 						</RevealText>
 					)}
-				</div>
+				</button>
 				<ProjectInfo
 					companyIcon={companyIcon}
 					companyName={companyName}
 					companyUrl={companyUrl}
 					description={description}
-					isHovered={isHovered}
+					isHovered={isActive}
 					note={note}
 				/>
 
-				<ProjectMedia isHovered={isHovered} media={media} />
+				<ProjectMedia isHovered={isActive} media={media} />
 			</div>
 		</PhotoViewProvider>
 	);
@@ -173,11 +186,11 @@ function ProjectInfo({
 }: ProjectInfo & {
 	isHovered: boolean;
 }) {
-	const containerRef = useRef<HTMLParagraphElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
 	const isMobile = useIsMobile();
 
 	// hovered state
-	const animateTo = () => {
+	const animateTo = useCallback(() => {
 		if (!containerRef.current) {
 			return;
 		}
@@ -188,10 +201,10 @@ function ProjectInfo({
 				duration: 628,
 			}),
 		});
-	};
+	}, [isMobile]);
 
 	// initial state
-	const animateFrom = () => {
+	const animateFrom = useCallback(() => {
 		if (!containerRef.current) {
 			return;
 		}
@@ -202,7 +215,7 @@ function ProjectInfo({
 				duration: 1250,
 			}),
 		});
-	};
+	}, []);
 
 	useEffect(() => {
 		if (isHovered) {
@@ -210,7 +223,7 @@ function ProjectInfo({
 		} else {
 			animateFrom();
 		}
-	}, [isHovered]);
+	}, [animateFrom, animateTo, isHovered]);
 
 	return (
 		<div
@@ -233,16 +246,28 @@ function ProjectInfo({
 								)}
 							>
 								{companyIcon && (
-									<img alt={companyName} className="size-4" src={companyIcon} />
+									<img
+										alt={companyName}
+										className="size-4"
+										decoding="async"
+										height={16}
+										loading="lazy"
+										src={companyIcon}
+										width={16}
+									/>
 								)}
-								<a
-									className="text-sm"
-									href={companyUrl}
-									rel="noopener noreferrer"
-									target="_blank"
-								>
-									{companyName}
-								</a>
+								{companyUrl ? (
+									<a
+										className="text-sm"
+										href={companyUrl}
+										rel="noopener noreferrer"
+										target="_blank"
+									>
+										{companyName}
+									</a>
+								) : (
+									<span className="text-sm">{companyName}</span>
+								)}
 							</RevealBlock>
 						)}
 
@@ -256,9 +281,13 @@ function ProjectInfo({
 			</div>
 			<div className="absolute bottom-0 left-0">
 				<img
-					alt="Ordered Dither Gradient"
+					alt=""
 					className="w-full"
+					decoding="async"
+					height={85}
+					loading="lazy"
 					src="ordered-dither-gradient-02.png"
+					width={400}
 				/>
 			</div>
 		</div>
@@ -275,7 +304,7 @@ function ProjectMedia({
 	const spanRef = useRef<HTMLDivElement>(null);
 
 	// hovered state
-	const animateTo = () => {
+	const animateTo = useCallback(() => {
 		if (!spanRef.current) {
 			return;
 		}
@@ -287,10 +316,10 @@ function ProjectMedia({
 				duration: 628,
 			}),
 		});
-	};
+	}, []);
 
 	// initial state
-	const animateFrom = () => {
+	const animateFrom = useCallback(() => {
 		if (!spanRef.current) {
 			return;
 		}
@@ -302,7 +331,7 @@ function ProjectMedia({
 				duration: 628,
 			}),
 		});
-	};
+	}, []);
 
 	useEffect(() => {
 		if (isHovered) {
@@ -310,17 +339,17 @@ function ProjectMedia({
 		} else {
 			animateFrom();
 		}
-	}, [isHovered]);
+	}, [animateFrom, animateTo, isHovered]);
 
 	return (
 		<div className="mt-1 flex max-w-86 overflow-auto sm:max-w-140">
 			<div className="relative flex flex-row">
-				{media.map((_, i) => (
-					<RevealBlock key={i}>
+				{media.map((item, index) => (
+					<RevealBlock key={item.url}>
 						<ProjectItemMedia
-							index={i}
+							index={index}
 							isHovered={isHovered}
-							media={media[i]}
+							media={item}
 						/>
 					</RevealBlock>
 				))}
@@ -356,7 +385,7 @@ function ProjectItemMedia({
 	const mediaHeight = 80;
 
 	// hovered state
-	const animateTo = () => {
+	const animateTo = useCallback(() => {
 		if (!(containerRef.current && mediaRef.current && imgRef.current)) {
 			return;
 		}
@@ -386,10 +415,10 @@ function ProjectItemMedia({
 			opacity: 0,
 			duration: 100,
 		});
-	};
+	}, []);
 
 	// initial state
-	const animateFrom = () => {
+	const animateFrom = useCallback(() => {
 		if (!(containerRef.current && mediaRef.current && imgRef.current)) {
 			return;
 		}
@@ -421,7 +450,7 @@ function ProjectItemMedia({
 			opacity: 1,
 			duration: 2500,
 		});
-	};
+	}, [index]);
 
 	useEffect(() => {
 		if (isHovered) {
@@ -429,24 +458,25 @@ function ProjectItemMedia({
 		} else {
 			animateFrom();
 		}
-	}, [isHovered]);
+	}, [animateFrom, animateTo, isHovered]);
 
-	const render =
-		media.type === "image"
-			? undefined
-			: () => {
-					return (
-						<div className="aspect-video w-full max-w-[900px]">
-							<video
-								autoPlay
-								className="h-full w-full"
-								controls
-								playsInline
-								src={media.url}
-							/>
-						</div>
-					);
-				};
+	let render: (() => ReactNode) | undefined;
+	if (media.type === "video") {
+		render = () => (
+			<div className="aspect-video w-full max-w-[900px]">
+				<video
+					autoPlay
+					className="h-full w-full"
+					controls
+					muted
+					playsInline
+					poster={media.poster}
+					preload="metadata"
+					src={media.url}
+				/>
+			</div>
+		);
+	}
 
 	return (
 		<div
@@ -465,9 +495,11 @@ function ProjectItemMedia({
 			}}
 		>
 			<img
-				alt="Ordered Dither Gradient"
+				alt=""
 				className="absolute top-0 left-0"
+				decoding="async"
 				height={16}
+				loading="lazy"
 				ref={imgRef}
 				src="ordered-dither-gradient-03.png"
 				style={{
@@ -484,6 +516,7 @@ function ProjectItemMedia({
 			>
 				{hasBeenHovered && (
 					<PhotoView
+						id={media.url}
 						index={index}
 						render={render}
 						src={media.type === "image" ? media.url : undefined}
@@ -497,9 +530,8 @@ function ProjectItemMedia({
 						)}
 						{media.type === "video" && (
 							<ProjectItemVideo
-								gif={media.gif}
 								height={mediaHeight}
-								src={media.url}
+								poster={media.poster}
 								width={mediaWidth}
 							/>
 						)}
@@ -532,47 +564,56 @@ function ProjectItemImage({
 				gridSize={1}
 				src={src}
 			/>*/}
-			<img alt="Img" className="h-full w-full object-cover" src={src} />
+			<img
+				alt=""
+				className="h-full w-full object-cover"
+				decoding="async"
+				height={height}
+				loading="lazy"
+				src={src}
+				width={width}
+			/>
 		</div>
 	);
 }
 
 function ProjectItemVideo({
-	src,
 	width,
 	height,
-	gif,
+	poster,
 }: {
-	src: string;
-	gif?: string;
+	poster?: string;
 	width: number;
 	height: number;
 }) {
 	return (
 		<div className="h-hit w-fit">
-			{gif ? (
+			{poster ? (
 				<div
 					style={{
 						width,
 						height,
 					}}
 				>
-					<img alt="Img" className="h-full w-full object-cover" src={gif} />
-					{/*<DitherShader
+					<img
+						alt=""
 						className="h-full w-full object-cover"
-						gifFps={10}
-						gridSize={1}
-						src={gif}
-						style={{
-							width,
-							height,
-						}}
-					/>*/}
+						decoding="async"
+						height={height}
+						loading="lazy"
+						src={poster}
+						width={width}
+					/>
 				</div>
 			) : (
-				<div className="aspect-video w-full max-w-350">
-					<VideoPlayer src={src} />
-				</div>
+				<div
+					aria-hidden="true"
+					className="bg-muted"
+					style={{
+						width,
+						height,
+					}}
+				/>
 			)}
 		</div>
 	);

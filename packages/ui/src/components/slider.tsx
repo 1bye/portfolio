@@ -31,8 +31,10 @@ function Slider({
 	const fillRef = useRef<HTMLDivElement>(null);
 	const indicatorRef = useRef<HTMLDivElement>(null);
 
-	const fillAnimRef = useRef<any>(null);
-	const indicatorAnimRef = useRef<any>(null);
+	const fillAnimRef = useRef<ReturnType<typeof createAnimatable> | null>(null);
+	const indicatorAnimRef = useRef<ReturnType<typeof createAnimatable> | null>(
+		null
+	);
 
 	const [width, setWidth] = useState(0);
 
@@ -62,12 +64,12 @@ function Slider({
 
 	// Animate on value change
 	useEffect(() => {
-		fillAnimRef.current?.scaleX(percent);
+		fillAnimRef.current?.scaleX?.(percent);
 
 		const _x = percent * width;
 		const x = Math.max(10, _x - 17);
 
-		indicatorAnimRef.current?.x(x);
+		indicatorAnimRef.current?.x?.(x);
 	}, [percent, width]);
 
 	const handleChange = useCallback(
@@ -80,26 +82,29 @@ function Slider({
 	return (
 		<div className={cn("relative select-none", className)}>
 			<div
-				className="relative h-11 overflow-hidden rounded-2xl bg-black/[0.04]"
+				className="relative h-11 overflow-hidden rounded-xl bg-muted"
 				ref={trackRef}
 			>
 				<div
-					className="absolute inset-y-0 left-0 w-full origin-left rounded-3xl bg-black/[0.06]"
+					className="absolute inset-y-0 left-0 w-full origin-left rounded-xl bg-primary/10"
 					ref={fillRef}
 					style={{ transform: "scaleX(0)" }}
 				/>
 				<div
-					className="pointer-events-none absolute inset-y-3 h-5 w-0.5 rounded-full bg-black/30"
+					className="pointer-events-none absolute inset-y-3 h-5 w-0.5 rounded-full bg-primary"
 					ref={indicatorRef}
 					style={{ transform: "translateX(0px)" }}
 				/>
 				<div className="pointer-events-none absolute inset-0 flex items-center justify-between px-4">
-					<span className="font-medium text-[13px] text-black/70">{label}</span>
-					<span className="font-medium text-[12px] text-black/40 tabular-nums">
+					<span className="font-medium text-[13px] text-foreground">
+						{label}
+					</span>
+					<span className="font-medium text-[12px] text-muted-foreground tabular-nums">
 						{value}
 					</span>
 				</div>
 				<input
+					aria-label={label}
 					className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
 					max={max}
 					min={min}

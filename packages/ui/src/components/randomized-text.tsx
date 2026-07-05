@@ -43,7 +43,7 @@ export function RandomizedText({
 		return elements.map(
 			() => delay + Math.random() * 0.2 + Math.random() * 0.03
 		);
-	}, [elements.length, delay]);
+	}, [delay, elements]);
 
 	const variants = {
 		hidden: { opacity: 0 },

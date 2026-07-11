@@ -7,6 +7,40 @@ export function ProjectsBlock() {
 	const isMobile = useIsMobile();
 	const projects: Project[] = [
 		{
+			title: "Altavinci",
+			description:
+				"Create pixel-exact motion with declarative code. WebGPU previews and direct MP4 export.",
+			icon: "projects/altavinci/logo.svg",
+			year: "2026",
+			companyIcon: "projects/altavinci/logo.svg",
+			companyName: "Live preview",
+			companyUrl: "https://preview.altavinci.com",
+			category: "Creative Tool (Preview)",
+			media: [
+				{
+					type: "video",
+					url: "projects/altavinci/video.mp4",
+					poster: "projects/altavinci/poster.webp",
+				},
+				{
+					type: "image",
+					url: "projects/altavinci/media-1.webp",
+				},
+				{
+					type: "image",
+					url: "projects/altavinci/media-2.webp",
+				},
+				{
+					type: "image",
+					url: "projects/altavinci/media-3.webp",
+				},
+				{
+					type: "image",
+					url: "projects/altavinci/media-4.webp",
+				},
+			],
+		},
+		{
 			title: "Apiser",
 			description:
 				"Collection of fully-typed tools to work in back-end with ease. Drizzle Models, Controllers, Services, Workers, Responses, Transforms and much more.",

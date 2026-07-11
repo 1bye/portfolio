@@ -52,9 +52,10 @@ export function ProjectItem({
 	unavailable,
 }: Project) {
 	const [isHovered, setIsHovered] = useState(false);
+	const [isFocused, setIsFocused] = useState(false);
 	const [isPinned, setIsPinned] = useState(false);
 	const unavailableStrokeRef = useRef<HTMLDivElement>(null);
-	const isActive = isHovered || isPinned;
+	const isActive = isHovered || isFocused || isPinned;
 
 	// end state
 	const animateTo = useCallback(() => {
@@ -89,15 +90,17 @@ export function ProjectItem({
 
 	return (
 		<PhotoViewProvider>
-			<div className="flex w-full flex-col">
+			<div
+				className="flex w-full flex-col"
+				onPointerEnter={() => setIsHovered(true)}
+				onPointerLeave={() => setIsHovered(false)}
+			>
 				<button
 					aria-expanded={isActive}
 					className="hit-area-l-18 hit-area-t-2 flex w-fit flex-row items-center gap-1 text-left"
-					onBlur={() => setIsHovered(false)}
+					onBlur={() => setIsFocused(false)}
 					onClick={() => setIsPinned((current) => !current)}
-					onFocus={() => setIsHovered(true)}
-					onPointerEnter={() => setIsHovered(true)}
-					onPointerLeave={() => setIsHovered(false)}
+					onFocus={() => setIsFocused(true)}
 					type="button"
 				>
 					<RevealBlock

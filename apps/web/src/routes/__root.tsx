@@ -39,6 +39,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 			{ name: "twitter:description", content: DEFAULT_DESCRIPTION },
 			{ name: "twitter:image", content: OG_IMAGE },
 			{ name: "twitter:creator", content: "@MrBye32" },
+			{
+				rel: "icon",
+				type: "image/svg+xml",
+				href: "/logo.svg",
+			},
 		],
 		links: [
 			{ rel: "stylesheet", href: appCss },

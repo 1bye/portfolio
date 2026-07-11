@@ -18,8 +18,8 @@ function requireBinding<T>(value: T | undefined, name: string): T {
 
 export const web = await TanStackStart("web", {
 	cwd: "../../apps/web",
-	assets: "dist",
-	profile: "1bye",
+	assets: "dist/client",
+	profile: "personal",
 	bindings: {
 		VITE_SERVER_URL: requireBinding(
 			alchemy.env.VITE_SERVER_URL,

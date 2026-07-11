@@ -5,8 +5,7 @@ import {
 	Outlet,
 	Scripts,
 } from "@tanstack/react-router";
-import { lazy, type ReactNode, Suspense, useEffect, useState } from "react";
-import { RootCanvasProvider } from "@/components/root-canvas/provider";
+import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/theme";
 import appCss from "../index.css?url";
 
@@ -17,16 +16,6 @@ const DEFAULT_TITLE = "Yurii Hulyk — 1bye";
 const DEFAULT_DESCRIPTION =
 	"Software engineer crafting interactive experiences on the web.";
 const OG_IMAGE = `${SITE_URL}/og_image.png`;
-const LazyRootCanvas = lazy(() =>
-	import("@/components/root-canvas/root-canvas").then((module) => ({
-		default: module.RootCanvas,
-	}))
-);
-const CANVAS_DEFER_MS = 5200;
-
-const shouldSkipCanvas = () =>
-	window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
-	window.matchMedia("(max-width: 767px)").matches;
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
 	head: () => ({
@@ -63,44 +52,13 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function Providers() {
 	return (
-		<RootCanvasProvider>
-			<ClientOnly>
-				<ThemeProvider>
-					<main className="relative isolate flex min-h-screen max-w-screen flex-col overflow-x-hidden px-2">
-						<Outlet />
-						<DeferredRootCanvas />
-					</main>
-				</ThemeProvider>
-			</ClientOnly>
-		</RootCanvasProvider>
-	);
-}
-
-function DeferredRootCanvas() {
-	const [shouldRender, setShouldRender] = useState(false);
-
-	useEffect(() => {
-		if (shouldSkipCanvas()) {
-			return;
-		}
-
-		const timeoutId = window.setTimeout(() => {
-			setShouldRender(true);
-		}, CANVAS_DEFER_MS);
-
-		return () => {
-			window.clearTimeout(timeoutId);
-		};
-	}, []);
-
-	if (!shouldRender) {
-		return null;
-	}
-
-	return (
-		<Suspense fallback={null}>
-			<LazyRootCanvas />
-		</Suspense>
+		<ClientOnly>
+			<ThemeProvider>
+				<main className="relative isolate flex min-h-screen max-w-screen flex-col overflow-x-hidden px-2">
+					<Outlet />
+				</main>
+			</ThemeProvider>
+		</ClientOnly>
 	);
 }
 

@@ -4,50 +4,38 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "serve": "vite preview",
-    "dev:bare": "vite dev",
-    "deploy": "npm run build && wrangler deploy"
+    "check-types": "tsc --noEmit",
+    "dev": "vite dev",
+    "serve": "vite preview"
   },
   "dependencies": {
     "@nandorojo/galeria": "^2.0.2",
-    "@portfolio/env": "workspace:*",
     "@portfolio/ui": "workspace:*",
     "@react-three/fiber": "^9.5.0",
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/react-query": "^5.80.6",
     "@tanstack/react-router": "1.168.2",
     "@tanstack/react-start": "1.167.1",
     "animejs": "^4.3.6",
     "clsx": "2.1.1",
-    "dotenv": "catalog:",
     "gifenc": "^1.0.3",
     "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-markdown": "^10.1.0",
-    "sonner": "catalog:",
     "tailwind-merge": "3.5.0",
     "tailwindcss": "catalog:",
     "three": "^0.183.2",
-    "vite-tsconfig-paths": "^5.1.4",
-    "zod": "catalog:"
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.17.1",
-    "@portfolio/config": "workspace:*",
-    "@tailwindcss/typography": "^0.5.19",
-    "@tanstack/react-router-devtools": "^1.141.1",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/react": "^16.2.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@types/three": "^0.183.1",
     "@vitejs/plugin-react": "^5.0.4",
     "alchemy": "catalog:",
-    "jsdom": "^26.0.0",
     "typescript": "^5",
     "vite": "^7.0.2",
-    "web-vitals": "^5.0.3",
     "wrangler": "catalog:"
   }
 }

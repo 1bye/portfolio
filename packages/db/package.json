@@ -1,5 +1,6 @@
 {
   "name": "@portfolio/db",
+  "private": true,
   "type": "module",
   "exports": {
     ".": {
@@ -10,6 +11,7 @@
     }
   },
   "scripts": {
+    "check-types": "tsc --noEmit",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
@@ -18,12 +20,11 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@portfolio/env": "workspace:*",
-    "dotenv": "catalog:",
-    "drizzle-orm": "^0.45.1",
-    "zod": "catalog:"
+    "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
     "@portfolio/config": "workspace:*",
+    "dotenv": "catalog:",
     "drizzle-kit": "^0.31.8",
     "typescript": "^5"
   }

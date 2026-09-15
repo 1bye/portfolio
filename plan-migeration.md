@@ -78,8 +78,8 @@ predictable Turborepo commands.
 
 1. Give each relevant package its own `dev`, `build`, and `check-types` scripts.
 2. Make root scripts delegate through explicit `turbo run` commands.
-3. Add filtered commands for developing and building the archive or new website
-   independently.
+3. Add filtered commands for the archive and infrastructure now; add the
+   matching new-website commands when its workspace is created in Phase 4.
 4. Keep deployment logic inside `packages/infra`; root scripts only delegate to
    it.
 5. Remove obsolete website dependencies only after confirming they have no
@@ -87,13 +87,15 @@ predictable Turborepo commands.
 6. Keep `apps/server`, `packages/db`, and `packages/env` in the repository, but
    do not connect them to the new portfolio.
 7. Keep dependencies installed in the workspace that uses them.
-8. Pin Alchemy v2 to an exact beta version so an install cannot silently cross
-   a breaking beta release.
+8. Pin the currently deployed Alchemy v1 version exactly so it cannot drift
+   before migration. Upgrade to an exact Alchemy v2 beta as part of Phase 3 so
+   the dependency and infrastructure API change atomically.
 
 ### Verification
 
 - Bun resolves every workspace without duplicate package names.
-- Filtered archive, web, and infrastructure tasks select the expected package.
+- Filtered archive and infrastructure tasks select the expected package; the
+  web equivalents are deferred until that workspace exists in Phase 4.
 - `bun run check` and `bun run check-types` pass.
 - The archive production build still passes after workspace normalization.
 - No root script contains package-specific build implementation.
@@ -117,21 +119,22 @@ protecting the existing production Worker and domain.
    - `Cloudflare.providers()`
    - `Cloudflare.state()`
    - `Cloudflare.Website.Vite`
-2. Declare separate website resources for the archive and the new app.
-3. Remove the legacy `TanStackStart` infrastructure resource.
-4. Remove the app-side Alchemy Vite plugin and
+2. Upgrade Alchemy to a reviewed, exact v2 beta version.
+3. Declare separate website resources for the archive and the new app.
+4. Remove the legacy `TanStackStart` infrastructure resource.
+5. Remove the app-side Alchemy Vite plugin and
    `@cloudflare/vite-plugin`; Alchemy v2 injects its own Cloudflare Vite
    integration.
-5. Stop using `wrangler.jsonc` for Alchemy-managed website deployment.
-6. Start the new website with no runtime bindings or secrets.
-7. Configure isolated stages:
+6. Stop using `wrangler.jsonc` for Alchemy-managed website deployment.
+7. Start the new website with no runtime bindings or secrets.
+8. Configure isolated stages:
    - developer stages for local work;
    - preview stages without production domains;
    - an explicit production stage.
-8. Add infrastructure scripts for plan, development, deployment, and explicit
+9. Add infrastructure scripts for plan, development, deployment, and explicit
    stage-scoped destruction.
-9. Rehearse v1-to-v2 adoption against a non-production stage.
-10. Inspect the production Alchemy plan and Cloudflare resource names before
+10. Rehearse v1-to-v2 adoption against a non-production stage.
+11. Inspect the production Alchemy plan and Cloudflare resource names before
     approving adoption.
 
 ### Verification

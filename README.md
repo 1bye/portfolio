@@ -47,11 +47,11 @@ The API is running at [http://localhost:3000](http://localhost:3000).
 
 ## UI Customization
 
-React web apps in this stack share shadcn/ui primitives through `packages/ui`.
+The archived React app uses shadcn/ui primitives from `packages/ui`.
 
 - Change design tokens and global styles in `packages/ui/src/styles/globals.css`
 - Update shared primitives in `packages/ui/src/components/*`
-- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
+- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/archive/components.json`
 
 ### Add more shared components
 
@@ -69,7 +69,7 @@ import { Button } from "@portfolio/ui/components/button";
 
 ### Add app-specific blocks
 
-If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
+If you want to add archive-specific blocks instead of shared primitives, run the shadcn CLI from `apps/archive`.
 
 ## Deployment (Cloudflare via Alchemy)
 
@@ -88,7 +88,7 @@ For more details, see the guide on [Deploying to Cloudflare with Alchemy](https:
 ```
 portfolio/
 ├── apps/
-│   ├── web/         # Frontend application (React + TanStack Start)
+│   ├── archive/     # Archived v1 website (React + TanStack Start)
 │   └── server/      # Backend API (Hono)
 ├── packages/
 │   ├── ui/          # Shared shadcn/ui components and styles
@@ -99,7 +99,7 @@ portfolio/
 
 - `bun run dev`: Start all applications in development mode
 - `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
+- `bun run dev:archive`: Start only the archived web application
 - `bun run dev:server`: Start only the server
 - `bun run check-types`: Check TypeScript types across all apps
 - `bun run db:push`: Push schema changes to database

@@ -16,7 +16,7 @@ export function AnimatedLogo() {
 		}
 
 		if (hasPlayedThisSession) {
-			containerRef.current.style.opacity = 0;
+			containerRef.current.style.opacity = "0";
 			// startRef.current.style.width = "0px";
 			// startRef.current.style.left = "-8px";
 			// startRef.current.style.fontSize = "16px";

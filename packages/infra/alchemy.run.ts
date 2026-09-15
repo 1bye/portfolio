@@ -3,7 +3,7 @@ import { TanStackStart } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 config({ path: "./.env" });
-config({ path: "../../apps/web/.env" });
+config({ path: "../../apps/archive/.env" });
 config({ path: "../../apps/server/.env" });
 
 const app = await alchemy("portfolio");
@@ -17,7 +17,7 @@ function requireBinding<T>(value: T | undefined, name: string): T {
 }
 
 export const web = await TanStackStart("web", {
-	cwd: "../../apps/web",
+	cwd: "../../apps/archive",
 	assets: "dist/client",
 	profile: "personal",
 	bindings: {

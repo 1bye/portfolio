@@ -8,9 +8,11 @@ to an incompatible mixed dependency graph. The workspace pins the complete
 runtime family to `4.0.0-rc.112`, the API used by this Alchemy release. Upgrade
 Alchemy and Effect together.
 
-Phase 4 adds the new website as a separate, binding-free resource. It uses
+Phase 4 adds the new website as a separate resource. It uses
 `portfolio-v2-<stage>` as its Worker name and receives `1bye.dev` only in the
-explicit `prod` stage.
+explicit `prod` stage. It has no service or secret bindings; the public
+`VITE_IS_PRODUCTION` string is the only environment binding and keeps preview
+deployments out of search indexes.
 
 ## Recorded v1 Identity
 
@@ -59,41 +61,30 @@ These commands do not access Cloudflare.
 on its first `plan`, `dev`, or `deploy`. Review and approve that bootstrap
 separately.
 
-After approval, first deploy the tagged v1 stack to a disposable stage without
-its production domain. Confirm its physical Worker name is
-`portfolio-web-migration-preview`, then inspect the v2 plan:
+The Phase 5 rehearsal used the isolated `preview` stage:
 
 ```sh
-bun run plan -- --stage migration-preview --profile personal
+bun run plan -- --stage preview --profile personal --detailed --no-input
+bun run deploy -- --stage preview --profile personal --no-input
 ```
 
-`alchemy plan` has no adoption flag. Preview the adoption through a deployment
-dry run and proceed only when it identifies the expected existing Worker by
-physical name:
-
-```sh
-bun run deploy -- --stage migration-preview --profile personal --adopt --dry-run
-```
-
-Then perform the disposable-stage adoption:
-
-```sh
-bun run deploy -- --stage migration-preview --profile personal --adopt
-```
+It created `portfolio-web-preview` and `portfolio-v2-preview` without custom
+domains. Both Worker URLs served their SSR routes and assets. The v2 preview
+returned `noindex, nofollow, noarchive`.
 
 Destroy only disposable stages, always naming the stage:
 
 ```sh
-bun run destroy:stage -- migration-preview --profile personal
+bun run destroy:stage -- preview --profile personal
 ```
 
-Production adoption remains a Phase 5 cutover action. Do not run it during the
-infrastructure migration.
+The preview stack remains deployed as migration evidence. It can be removed
+later without touching either production Worker.
 
 ## Production Gate
 
-After Phase 4 adds the new website resource, inspect both the normal plan and
-the adoption dry run:
+Before adopting the existing Worker, inspect both the normal plan and the
+adoption dry run:
 
 ```sh
 bun run plan -- --stage prod --profile personal
@@ -104,3 +95,57 @@ Proceed only when the archive resolves to `portfolio-web-yuriihulyk`, the new
 website has a distinct Worker name, and the only custom-domain transition is
 the approved move from `1bye.dev` to `v1.1bye.dev` for the archive and to
 `1bye.dev` for the new website.
+
+## Phase 5 Release Record
+
+- Cutover: `2026-09-15T14:24:44+01:00`
+- Tested source commit: `fe45db9`
+- Alchemy: `2.0.0-beta.77`
+- Preview stage: `preview`
+- Production stage: `prod`
+- New Worker: `portfolio-v2-prod`
+- New public hostname: `https://1bye.dev`
+- Archived Worker: `portfolio-web-yuriihulyk`
+- Archive hostname: `https://v1.1bye.dev`
+
+The production adoption used the existing archived Worker name and did not
+create a replacement. The cutover was intentionally sequenced:
+
+1. Adopt the existing archive, add `v1.1bye.dev`, and deploy the new Worker
+   without its production domain.
+2. Verify the archive on both hostnames and the new Worker on its Worker URL.
+3. Move `1bye.dev` from the archive to the new Worker.
+4. Repeat the production plan and require `noop` for both resources.
+
+Alchemy scheduled the two domain updates concurrently during step 3. The
+archive detached successfully, while the first new-site attachment saw the
+still-attached hostname and failed. Repeating the same deployment reconciled
+the remaining attachment safely. The final production plan reported no
+changes.
+
+Validation passed for SSR HTML, hydration, a real 404 route, static assets,
+archive direct routes, canonical URLs, production and preview robots policies,
+sitemaps, wide and `390x844` layouts, keyboard skip navigation, and a clean
+browser console. Alchemy production logs were readable and contained no Worker
+exceptions during validation. Common secret and framework probe paths returned
+the controlled 404 page.
+
+Both custom hostnames have valid HTTPS service. No redirect hostname is
+configured, and the existing Cloudflare zone policy still allows direct HTTP
+responses; forcing HTTP-to-HTTPS is intentionally outside this Worker migration.
+
+## Rollback
+
+The archive remains live and needs no rebuild. Use two explicit production
+deployments so the shared hostname is detached before it is reassigned:
+
+1. Temporarily set the new Website resource to `domain: null`, leave the
+   archive on `v1.1bye.dev`, run the production plan, and deploy.
+2. Change the archive domain to
+   `{ name: "1bye.dev", aliases: ["v1.1bye.dev"] }`, keep the new Website at
+   `domain: null`, run the production plan, and deploy again.
+3. Confirm the archived homepage and direct routes on both hostnames.
+
+Do not destroy either production stage or the old Alchemy v1 state during a
+rollback. After the incident is understood, restore this file's normal domain
+configuration and repeat the gated cutover.

@@ -17,6 +17,18 @@
       "cache": false,
       "persistent": true
     },
+    "@portfolio/infra#dev": {
+      "cache": false,
+      "persistent": true,
+      "passThroughEnv": [
+        "ALCHEMY_*",
+        "CI",
+        "CLOUDFLARE_*",
+        "DO_NOT_TRACK",
+        "NO_TRACK",
+        "USER"
+      ]
+    },
     "db:push": {
       "cache": false
     },
@@ -32,10 +44,37 @@
       "persistent": true
     },
     "deploy": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": [
+        "ALCHEMY_*",
+        "CI",
+        "CLOUDFLARE_*",
+        "DO_NOT_TRACK",
+        "NO_TRACK",
+        "USER"
+      ]
     },
-    "destroy": {
-      "cache": false
+    "destroy:stage": {
+      "cache": false,
+      "passThroughEnv": [
+        "ALCHEMY_*",
+        "CI",
+        "CLOUDFLARE_*",
+        "DO_NOT_TRACK",
+        "NO_TRACK",
+        "USER"
+      ]
+    },
+    "plan": {
+      "cache": false,
+      "passThroughEnv": [
+        "ALCHEMY_*",
+        "CI",
+        "CLOUDFLARE_*",
+        "DO_NOT_TRACK",
+        "NO_TRACK",
+        "USER"
+      ]
     }
   }
 }

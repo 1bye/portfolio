@@ -6,14 +6,16 @@
     "check-types": "tsc --noEmit",
     "dev": "alchemy dev",
     "deploy": "alchemy deploy",
-    "destroy": "alchemy destroy"
-  },
-  "dependencies": {
-    "dotenv": "catalog:"
+    "destroy:stage": "alchemy destroy --stage",
+    "plan": "alchemy plan"
   },
   "devDependencies": {
+    "@effect/platform-bun": "4.0.0-rc.112",
+    "@effect/platform-node": "4.0.0-rc.112",
     "@portfolio/config": "workspace:*",
     "alchemy": "catalog:",
-    "typescript": "^5"
+    "effect": "4.0.0-rc.112",
+    "typescript": "^5",
+    "vitest": "4.1.8"
   }
 }

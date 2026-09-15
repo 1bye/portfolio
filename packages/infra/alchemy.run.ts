@@ -1,54 +1,42 @@
-import alchemy from "alchemy";
-import { TanStackStart } from "alchemy/cloudflare";
-import { config } from "dotenv";
+import { Stack as createStack } from "alchemy";
+import { providers, state, Website } from "alchemy/Cloudflare";
+import { Stack as StackContext } from "alchemy/Stack";
+import { gen } from "effect/Effect";
 
-config({ path: "./.env" });
-config({ path: "../../apps/archive/.env" });
-config({ path: "../../apps/server/.env" });
+const PRODUCTION_STAGE = "prod";
+const LEGACY_PRODUCTION_STAGE = "yuriihulyk";
+const ARCHIVE_DOMAIN = "v1.1bye.dev";
+const ARCHIVE_DEV_PORT = 3001;
 
-const app = await alchemy("portfolio");
-
-function requireBinding<T>(value: T | undefined, name: string): T {
-	if (value === undefined) {
-		throw new Error(`${name} is required`);
-	}
-
-	return value;
-}
-
-export const web = await TanStackStart("web", {
-	cwd: "../../apps/archive",
-	assets: "dist/client",
-	profile: "personal",
-	bindings: {
-		VITE_SERVER_URL: requireBinding(
-			alchemy.env.VITE_SERVER_URL,
-			"VITE_SERVER_URL"
-		),
-		DATABASE_URL: requireBinding(
-			alchemy.secret.env.DATABASE_URL,
-			"DATABASE_URL"
-		),
-		CORS_ORIGIN: requireBinding(alchemy.env.CORS_ORIGIN, "CORS_ORIGIN"),
+export default createStack(
+	"Portfolio",
+	{
+		providers: providers(),
+		state: state(),
 	},
-	domains: ["1bye.dev"],
-});
+	gen(function* () {
+		const stack = yield* StackContext;
+		const legacyStage =
+			stack.stage === PRODUCTION_STAGE ? LEGACY_PRODUCTION_STAGE : stack.stage;
+		const archive = yield* Website.Vite("Archive", {
+			rootDir: "../../apps/archive",
+			name: `portfolio-web-${legacyStage}`,
+			domain: stack.stage === PRODUCTION_STAGE ? ARCHIVE_DOMAIN : undefined,
+			memo: {
+				include: [
+					"**/*",
+					"../../packages/config/**",
+					"../../packages/ui/src/**",
+				],
+				lockfile: true,
+			},
+			dev: {
+				port: ARCHIVE_DEV_PORT,
+			},
+		});
 
-// export const server = await Worker("server", {
-// 	cwd: "../../apps/server",
-// 	entrypoint: "src/index.ts",
-// 	name: "1bye-dev-portfolio-server",
-// 	compatibility: "node",
-// 	bindings: {
-// 		DATABASE_URL: alchemy.secret.env.DATABASE_URL!,
-// 		CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
-// 	},
-// 	dev: {
-// 		port: 3000,
-// 	},
-// });
-
-console.log(`Web    -> ${web.url}`);
-// console.log(`Server -> ${server.url}`);
-
-await app.finalize();
+		return {
+			archiveUrl: archive.url,
+		};
+	})
+);

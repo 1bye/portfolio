@@ -11,33 +11,33 @@
       "zod": "^4.1.13",
       "@types/node": "^22.13.14",
       "@cloudflare/workers-types": "^4.20251213.0",
-      "alchemy": "0.82.2",
-      "wrangler": "^4.54.0",
+      "alchemy": "2.0.0-beta.77",
       "lucide-react": "^0.546.0",
       "next-themes": "^0.4.6",
       "react": "^19.2.3",
       "react-dom": "^19.2.3",
       "sonner": "^2.0.5",
-      "tailwindcss": "4.2.1",
+      "tailwindcss": "4.3.3",
       "@types/react": "^19.2.10",
       "@types/react-dom": "^19.2.3"
     }
   },
   "type": "module",
   "scripts": {
-    "dev": "turbo run dev --filter=@portfolio/infra",
+    "dev": "turbo run dev --filter=@portfolio/infra --",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
-    "dev:archive": "turbo run dev --filter=@portfolio/archive",
+    "dev:archive": "turbo run dev --filter=@portfolio/archive --",
     "build:archive": "turbo run build --filter=@portfolio/archive",
     "check-types:archive": "turbo run check-types --filter=@portfolio/archive",
-    "dev:infra": "turbo run dev --filter=@portfolio/infra",
+    "dev:infra": "turbo run dev --filter=@portfolio/infra --",
     "db:push": "turbo run db:push --filter=@portfolio/db",
     "db:studio": "turbo run db:studio --filter=@portfolio/db",
     "db:generate": "turbo run db:generate --filter=@portfolio/db",
     "db:migrate": "turbo run db:migrate --filter=@portfolio/db",
-    "deploy": "turbo run deploy --filter=@portfolio/infra",
-    "destroy": "turbo run destroy --filter=@portfolio/infra",
+    "plan": "turbo run plan --filter=@portfolio/infra --",
+    "deploy": "turbo run deploy --filter=@portfolio/infra --",
+    "destroy:stage": "turbo run destroy:stage --filter=@portfolio/infra --",
     "check": "ultracite check",
     "fix": "ultracite fix"
   },
@@ -45,6 +45,13 @@
     "@biomejs/biome": "2.4.5",
     "turbo": "^2.8.12",
     "ultracite": "7.2.5"
+  },
+  "overrides": {
+    "@effect/platform-node-shared": "4.0.0-rc.112",
+    "@effect/sql-d1": "4.0.0-rc.112",
+    "@effect/sql-sqlite-do": "4.0.0-rc.112",
+    "@effect/vitest": "4.0.0-rc.112",
+    "effect": "4.0.0-rc.112"
   },
   "packageManager": "bun@1.3.8"
 }

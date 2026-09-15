@@ -120,35 +120,44 @@ protecting the existing production Worker and domain.
    - `Cloudflare.state()`
    - `Cloudflare.Website.Vite`
 2. Upgrade Alchemy to a reviewed, exact v2 beta version.
-3. Declare separate website resources for the archive and the new app.
+3. Declare the archive website resource now. Add the new website resource in
+   Phase 4, after `apps/web` exists, so the stack never references a missing
+   build root.
 4. Remove the legacy `TanStackStart` infrastructure resource.
 5. Remove the app-side Alchemy Vite plugin and
    `@cloudflare/vite-plugin`; Alchemy v2 injects its own Cloudflare Vite
    integration.
 6. Stop using `wrangler.jsonc` for Alchemy-managed website deployment.
-7. Start the new website with no runtime bindings or secrets.
+7. Keep website resources free of runtime bindings and secrets until a
+   concrete feature requires them.
 8. Configure isolated stages:
    - developer stages for local work;
    - preview stages without production domains;
    - an explicit production stage.
 9. Add infrastructure scripts for plan, development, deployment, and explicit
    stage-scoped destruction.
-10. Rehearse v1-to-v2 adoption against a non-production stage.
-11. Inspect the production Alchemy plan and Cloudflare resource names before
-    approving adoption.
+10. Document the v1-to-v2 adoption rehearsal for a non-production stage.
+11. Run the rehearsal and inspect the production plan only after explicitly
+    approving Alchemy's state-store bootstrap and Cloudflare access.
 
 ### Verification
 
-- The v2 stack type-checks.
+- The v2 stack and Alchemy CLI type-check and load locally.
+- The archive builds with the Vite version required by Alchemy v2.
 - `alchemy plan` contains only expected creates, updates, and adoptions.
 - `alchemy dev` starts the TanStack Vite server with HMR.
 - A preview deployment serves SSR routes, static assets, and direct links.
 - Repeating the same deployment produces no unexpected changes.
 
+The last four checks are cloud validation gates. They intentionally remain
+pending until the state-store bootstrap and non-production deployment are
+approved.
+
 ### Exit Criteria
 
-Alchemy v2 owns a validated non-production stack, and the production adoption
-procedure is documented and safe to execute.
+The local Alchemy v2 migration is reproducible and the production adoption
+procedure is documented. Alchemy v2 owns a validated non-production stack only
+after the separately approved cloud rehearsal passes.
 
 ## Phase 4: Scaffold the New TanStack Start App
 

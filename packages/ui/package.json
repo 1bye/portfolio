@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@portfolio/config": "workspace:*",
-    "@tailwindcss/postcss": "4.2.1",
+    "@tailwindcss/postcss": "4.3.3",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "tailwindcss": "catalog:",

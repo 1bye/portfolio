@@ -22,6 +22,7 @@
       "!**/.expo",
       "!**/.wrangler",
       "!**/.alchemy",
+      "!**/.agents",
       "!**/.svelte-kit",
       "!**/wrangler.jsonc",
       "!**/.source",

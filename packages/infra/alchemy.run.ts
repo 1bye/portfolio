@@ -6,7 +6,9 @@ import { gen } from "effect/Effect";
 const PRODUCTION_STAGE = "prod";
 const LEGACY_PRODUCTION_STAGE = "yuriihulyk";
 const ARCHIVE_DOMAIN = "v1.1bye.dev";
+const WEBSITE_DOMAIN = "1bye.dev";
 const ARCHIVE_DEV_PORT = 3001;
+const WEBSITE_DEV_PORT = 3000;
 
 export default createStack(
 	"Portfolio",
@@ -34,9 +36,22 @@ export default createStack(
 				port: ARCHIVE_DEV_PORT,
 			},
 		});
+		const website = yield* Website.Vite("Website", {
+			rootDir: "../../apps/web",
+			name: `portfolio-v2-${stack.stage}`,
+			domain: stack.stage === PRODUCTION_STAGE ? WEBSITE_DOMAIN : undefined,
+			memo: {
+				include: ["**/*", "../../packages/config/**"],
+				lockfile: true,
+			},
+			dev: {
+				port: WEBSITE_DEV_PORT,
+			},
+		});
 
 		return {
 			archiveUrl: archive.url,
+			websiteUrl: website.url,
 		};
 	})
 );

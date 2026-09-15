@@ -1,0 +1,16 @@
+{
+  "extends": "@portfolio/config/tsconfig.base.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"],
+  "compilerOptions": {
+    "target": "ES2022",
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "noEmit": true,
+    "noUncheckedSideEffectImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}

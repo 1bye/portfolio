@@ -51,6 +51,25 @@
         "typescript": "^5",
       },
     },
+    "apps/web": {
+      "name": "@portfolio/web",
+      "dependencies": {
+        "@tanstack/react-router": "1.168.2",
+        "@tanstack/react-start": "1.167.1",
+        "react": "catalog:",
+        "react-dom": "catalog:",
+      },
+      "devDependencies": {
+        "@portfolio/config": "workspace:*",
+        "@tailwindcss/vite": "4.3.3",
+        "@types/react": "catalog:",
+        "@types/react-dom": "catalog:",
+        "@vitejs/plugin-react": "6.0.2",
+        "tailwindcss": "catalog:",
+        "typescript": "^5",
+        "vite": "8.3.0",
+      },
+    },
     "packages/config": {
       "name": "@portfolio/config",
       "version": "0.0.0",
@@ -144,8 +163,8 @@
     "dotenv": "^17.2.2",
     "lucide-react": "^0.546.0",
     "next-themes": "^0.4.6",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "sonner": "^2.0.5",
     "tailwindcss": "4.3.3",
     "zod": "^4.1.13",
@@ -852,6 +871,8 @@
     "@portfolio/server": ["@portfolio/server@workspace:apps/server"],
 
     "@portfolio/ui": ["@portfolio/ui@workspace:packages/ui"],
+
+    "@portfolio/web": ["@portfolio/web@workspace:apps/web"],
 
     "@prisma/debug": ["@prisma/debug@7.2.0", "", {}, "sha512-YSGTiSlBAVJPzX4ONZmMotL+ozJwQjRmZweQNIq/ER0tQJKJynNkRB3kyvt37eOfsbMCXk3gnLF6J9OJ4QWftw=="],
 
@@ -2339,7 +2360,7 @@
 
     "react-devtools-core": ["react-devtools-core@6.1.5", "", { "dependencies": { "shell-quote": "^1.6.1", "ws": "^7" } }, "sha512-ePrwPfxAnB+7hgnEr8vpKxL9cmnp7F322t8oqcPshbIQQhDKgFDW4tjhF2wjVbdXF9O/nyuy3sQWd9JGpiLPvA=="],
 
-    "react-dom": ["react-dom@19.2.4", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.4" } }, "sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ=="],
+    "react-dom": ["react-dom@19.3.0", "", { "dependencies": { "scheduler": "^0.28.0" }, "peerDependencies": { "react": "^19.3.0" } }, "sha512-JDk8dgif51OjFoDE70+OT9ICyYr+69HlmihNwp1+Nsfbna3t5sIiCa9ZJktDmQ4/1b/rn26hIAR2uYXDMr5r0Q=="],
 
     "react-is": ["react-is@18.3.1", "", {}, "sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg=="],
 
@@ -3088,6 +3109,8 @@
     "prompts/kleur": ["kleur@3.0.3", "", {}, "sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w=="],
 
     "proper-lockfile/signal-exit": ["signal-exit@3.0.7", "", {}, "sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ=="],
+
+    "react-dom/scheduler": ["scheduler@0.28.0", "", {}, "sha512-juorfCmIkIw8tT+p5BXSm6PJjQF/ycEYmKyzURCIt/RaZIhL+PulbQ9Yu2z1HdOJDdqDTlxA1+xKBmHXJsczAw=="],
 
     "react-native/commander": ["commander@12.1.0", "", {}, "sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA=="],
 

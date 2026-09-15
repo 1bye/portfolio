@@ -8,9 +8,9 @@ to an incompatible mixed dependency graph. The workspace pins the complete
 runtime family to `4.0.0-rc.112`, the API used by this Alchemy release. Upgrade
 Alchemy and Effect together.
 
-Phase 3 declares only the archive resource because `apps/web` does not exist
-yet. Phase 4 must add the new website resource before the final production
-plan.
+Phase 4 adds the new website as a separate, binding-free resource. It uses
+`portfolio-v2-<stage>` as its Worker name and receives `1bye.dev` only in the
+explicit `prod` stage.
 
 ## Recorded v1 Identity
 

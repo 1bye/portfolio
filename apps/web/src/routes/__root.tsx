@@ -11,6 +11,11 @@ import appCss from "../styles.css?url";
 const DEFAULT_TITLE = "Yurii Hulyk — Software Engineer";
 const DEFAULT_DESCRIPTION =
 	"Portfolio of Yurii Hulyk, a software engineer building thoughtful digital experiences.";
+const SITE_URL = "https://1bye.dev";
+const IS_PRODUCTION = import.meta.env.VITE_IS_PRODUCTION === "true";
+const ROBOTS_CONTENT = IS_PRODUCTION
+	? "index, follow"
+	: "noindex, nofollow, noarchive";
 
 interface StatusPageProps {
 	readonly action: ReactNode;
@@ -23,6 +28,7 @@ const StatusPage = ({ action, code, description, title }: StatusPageProps) => (
 	<main
 		className="grid min-h-svh place-items-center px-6 py-16"
 		id="main-content"
+		tabIndex={-1}
 	>
 		<section aria-labelledby="status-title" className="max-w-lg text-center">
 			<p className="font-mono text-[0.6875rem] text-[var(--accent)] uppercase tracking-[0.16em]">
@@ -89,10 +95,21 @@ export const Route = createRootRoute({
 			{ title: DEFAULT_TITLE },
 			{ name: "description", content: DEFAULT_DESCRIPTION },
 			{ name: "author", content: "Yurii Hulyk" },
-			{ name: "robots", content: "noindex, nofollow, noarchive" },
+			{ name: "robots", content: ROBOTS_CONTENT },
 			{ name: "theme-color", content: "#f1f0eb" },
+			{ property: "og:type", content: "website" },
+			{ property: "og:site_name", content: "1bye.dev" },
+			{ property: "og:title", content: DEFAULT_TITLE },
+			{ property: "og:description", content: DEFAULT_DESCRIPTION },
+			{ property: "og:url", content: SITE_URL },
+			{ name: "twitter:card", content: "summary" },
+			{ name: "twitter:title", content: DEFAULT_TITLE },
+			{ name: "twitter:description", content: DEFAULT_DESCRIPTION },
 		],
-		links: [{ rel: "stylesheet", href: appCss }],
+		links: [
+			{ rel: "stylesheet", href: appCss },
+			{ rel: "canonical", href: SITE_URL },
+		],
 	}),
 	component: Outlet,
 	errorComponent: ErrorPage,

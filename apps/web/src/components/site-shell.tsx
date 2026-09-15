@@ -1,5 +1,9 @@
 export const SiteShell = () => (
-	<main className="min-h-svh px-4 py-4 sm:px-6 sm:py-6" id="main-content">
+	<main
+		className="min-h-svh px-4 py-4 sm:px-6 sm:py-6"
+		id="main-content"
+		tabIndex={-1}
+	>
 		<div className="mx-auto flex min-h-[calc(100svh-2rem)] max-w-[90rem] flex-col border border-[var(--line)] bg-[var(--surface)] sm:min-h-[calc(100svh-3rem)]">
 			<header className="flex items-center justify-between border-[var(--line)] border-b px-5 py-4 sm:px-8">
 				<a

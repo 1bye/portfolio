@@ -1,2 +1,5 @@
 User-agent: *
-Disallow: /
+Allow: /
+Disallow:
+
+Sitemap: https://1bye.dev/sitemap.xml

@@ -40,6 +40,9 @@ export default createStack(
 			rootDir: "../../apps/web",
 			name: `portfolio-v2-${stack.stage}`,
 			domain: stack.stage === PRODUCTION_STAGE ? WEBSITE_DOMAIN : undefined,
+			env: {
+				VITE_IS_PRODUCTION: String(stack.stage === PRODUCTION_STAGE),
+			},
 			memo: {
 				include: ["**/*", "../../packages/config/**"],
 				lockfile: true,

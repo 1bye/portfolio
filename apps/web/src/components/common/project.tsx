@@ -285,7 +285,7 @@ function ProjectInfo({
 			<div className="absolute bottom-0 left-0">
 				<img
 					alt=""
-					className="w-full"
+					className="w-full dark:invert"
 					decoding="async"
 					height={85}
 					loading="lazy"
@@ -499,7 +499,7 @@ function ProjectItemMedia({
 		>
 			<img
 				alt=""
-				className="absolute top-0 left-0"
+				className="absolute top-0 left-0 dark:invert"
 				decoding="async"
 				height={16}
 				loading="lazy"

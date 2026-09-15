@@ -11,7 +11,7 @@ import appCss from "../index.css?url";
 
 export type RouterAppContext = Record<string, never>;
 
-const SITE_URL = "https://v1.1bye.dev";
+const SITE_URL = "https://1bye.dev";
 const DEFAULT_TITLE = "Yurii Hulyk — 1bye";
 const DEFAULT_DESCRIPTION =
 	"Software engineer crafting interactive experiences on the web.";

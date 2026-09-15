@@ -9,10 +9,10 @@ runtime family to `4.0.0-rc.112`, the API used by this Alchemy release. Upgrade
 Alchemy and Effect together.
 
 Phase 4 adds the new website as a separate resource. It uses
-`portfolio-v2-<stage>` as its Worker name and receives `1bye.dev` only in the
-explicit `prod` stage. It has no service or secret bindings; the public
-`VITE_IS_PRODUCTION` string is the only environment binding and keeps preview
-deployments out of search indexes.
+`portfolio-v2-<stage>` as its Worker name. The production Worker remains
+available at its `workers.dev` URL until the new portfolio is ready. It has no
+service or secret bindings; the public `VITE_IS_PRODUCTION` string is the only
+environment binding and keeps the unfinished deployment out of search indexes.
 
 ## Recorded v1 Identity
 
@@ -32,8 +32,8 @@ before production adoption; local state is evidence, not authority.
 - `dev_<user>`: local development, no custom domain.
 - `live_<user>` or an explicit preview stage: isolated cloud preview, no custom
   domain.
-- `prod`: production only. The archive targets `v1.1bye.dev` and the existing
-  v1 Worker name.
+- `prod`: production only. The existing v1 Worker serves `1bye.dev` and retains
+  `v1.1bye.dev` as an alias. The v2 Worker has no custom domain.
 
 Pass `--profile personal` for Cloudflare commands to preserve the account
 selection used by the v1 stack. Alchemy v2 resolves both providers and the state
@@ -81,7 +81,7 @@ bun run destroy:stage -- preview --profile personal
 The preview stack remains deployed as migration evidence. It can be removed
 later without touching either production Worker.
 
-## Production Gate
+## Historical Production Gate
 
 Before adopting the existing Worker, inspect both the normal plan and the
 adoption dry run:
@@ -99,6 +99,7 @@ the approved move from `1bye.dev` to `v1.1bye.dev` for the archive and to
 ## Phase 5 Release Record
 
 - Cutover: `2026-09-15T14:24:44+01:00`
+- Status: rolled back while the new portfolio is unfinished
 - Tested source commit: `fe45db9`
 - Alchemy: `2.0.0-beta.77`
 - Preview stage: `preview`
@@ -134,7 +135,23 @@ Both custom hostnames have valid HTTPS service. No redirect hostname is
 configured, and the existing Cloudflare zone policy still allows direct HTTP
 responses; forcing HTTP-to-HTTPS is intentionally outside this Worker migration.
 
-## Rollback
+## Current Deployment
+
+- Rollback: `2026-09-15T14:46:19+01:00`
+- Primary hostname: `https://1bye.dev`
+- Primary Worker: `portfolio-web-yuriihulyk`
+- Archive alias: `https://v1.1bye.dev`
+- Unfinished v2 Worker:
+  `https://portfolio-v2-prod.nouro-flow.workers.dev`
+- V2 indexing policy: `noindex, nofollow, noarchive`
+
+The rollback used two deployments so the shared hostname was detached before
+it was reassigned. The first deployment removed the v2 custom domain and
+disabled indexing. The second made `1bye.dev` the archive's canonical domain,
+retained `v1.1bye.dev` as an alias, and updated its sitemap and metadata. The
+final production plan reported no changes.
+
+## Rollback Procedure
 
 The archive remains live and needs no rebuild. Use two explicit production
 deployments so the shared hostname is detached before it is reassigned:
@@ -147,5 +164,5 @@ deployments so the shared hostname is detached before it is reassigned:
 3. Confirm the archived homepage and direct routes on both hostnames.
 
 Do not destroy either production stage or the old Alchemy v1 state during a
-rollback. After the incident is understood, restore this file's normal domain
-configuration and repeat the gated cutover.
+rollback. To launch v2 later, first keep the archive stable on
+`v1.1bye.dev`, verify it, and only then move `1bye.dev` to the v2 Worker.

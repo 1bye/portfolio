@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow:
 
-Sitemap: https://v1.1bye.dev/sitemap.xml
+Sitemap: https://1bye.dev/sitemap.xml
